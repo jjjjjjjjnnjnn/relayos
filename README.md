@@ -1,10 +1,10 @@
 <p align="center">
   <picture>
-    <img src="https://img.shields.io/badge/AgentBridge-v0.1.0a1-8B5CF6?style=for-the-badge" alt="AgentBridge">
+    <img src="https://img.shields.io/badge/RelayOS-v0.1.0a1-8B5CF6?style=for-the-badge" alt="RelayOS">
   </picture>
 </p>
 
-<h1 align="center">AgentBridge</h1>
+<h1 align="center">RelayOS</h1>
 
 <p align="center">
   <strong>Stop copy-pasting between AI tools.</strong><br>
@@ -33,7 +33,7 @@
 
 | Section | Description |
 |---------|-------------|
-| [🎯 Overview](#-overview) | What AgentBridge is and why it exists |
+| [🎯 Overview](#-overview) | What RelayOS is and why it exists |
 | [✨ Features](#-features) | Current capabilities |
 | [⚡ Quick Start](#-quick-start) | Install and run your first workflow |
 | [📖 User Guide](#-user-guide) | Workflows, terminals, memory |
@@ -48,7 +48,7 @@
 
 ## 🎯 Overview
 
-**AgentBridge** is an open-source coordination layer for AI agents — like Docker for containers, but for AI tools.
+**RelayOS** is an open-source coordination layer for AI agents — like Docker for containers, but for AI tools.
 
 ### The Problem
 
@@ -63,7 +63,7 @@ You use **Claude Code** for architecture, **ChatGPT** for reasoning, **Gemini** 
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
-│                   AgentBridge                        │
+│                   RelayOS                        │
 │                                                      │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
 │  │  Terminal   │  │   Workflow  │  │   Shared    │  │
@@ -113,13 +113,13 @@ You use **Claude Code** for architecture, **ChatGPT** for reasoning, **Gemini** 
 ### Installation
 
 ```bash
-pip install agentbridge
+pip install relayos
 ```
 
 ### Initialize
 
 ```bash
-agentbridge init
+relayos init
 ```
 
 Configure your API keys via environment variables:
@@ -151,29 +151,29 @@ steps:
 Execute it:
 
 ```bash
-agentbridge run hello.yaml
+relayos run hello.yaml
 ```
 
 ### Manage Terminals
 
 ```bash
 # See what terminals are available
-agentbridge terminal types
+relayos terminal types
 
 # Create one Claude Code terminal for architecture
-agentbridge terminal create claude -n architect -m claude-sonnet-4-20250514
+relayos terminal create claude -n architect -m claude-sonnet-4-20250514
 
 # And another for quick tasks
-agentbridge terminal create claude -n assistant -m claude-haiku-4-20251001
+relayos terminal create claude -n assistant -m claude-haiku-4-20251001
 
 # Create a Gemini terminal for research
-agentbridge terminal create google -n researcher -m gemini-2.5-flash
+relayos terminal create google -n researcher -m gemini-2.5-flash
 
 # See all running terminals
-agentbridge terminal list
+relayos terminal list
 
 # Run a prompt on a specific terminal
-agentbridge terminal exec opencode "Analyze this data"
+relayos terminal exec opencode "Analyze this data"
 ```
 
 ---
@@ -213,7 +213,7 @@ steps:
 
 ### Terminals
 
-AgentBridge treats each AI CLI as a "terminal" — an independently running worker:
+RelayOS treats each AI CLI as a "terminal" — an independently running worker:
 
 | Terminal | Binary | Default Model | Status |
 |----------|--------|---------------|--------|
@@ -228,20 +228,20 @@ AgentBridge treats each AI CLI as a "terminal" — an independently running work
 
 ```bash
 # Store
-agentbridge remember my_key "some value"
+relayos remember my_key "some value"
 
 # Retrieve
-agentbridge recall my_key
+relayos recall my_key
 
 # List all keys
-agentbridge memory-list
+relayos memory-list
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-Config file location: `~/.agentbridge/config.yaml` (or `$AGENTBRIDGE_CONFIG_DIR/config.yaml`)
+Config file location: `~/.relayos/config.yaml` (or `$AGENTBRIDGE_CONFIG_DIR/config.yaml`)
 
 ```yaml
 providers:
@@ -288,11 +288,11 @@ routing:
 ```
                     ┌─────────────────────┐
                     │    CLI (Click)       │
-                    │  agentbridge run     │
+                    │  relayos run     │
                     └──────────┬──────────┘
                                │
                     ┌──────────▼──────────┐
-                    │   AgentBridge Core    │
+                    │   RelayOS Core    │
                     │                      │
                     │  ┌────────────────┐  │
                     │  │  Terminal Pool  │──│──→ Claude Code, Mimo, OpenCode...
@@ -347,14 +347,14 @@ routing:
 
 ## 🙏 Credits
 
-AgentBridge is built on the shoulders of giants. We extend our deepest gratitude to:
+RelayOS is built on the shoulders of giants. We extend our deepest gratitude to:
 
 ### 🖥️ Terminal Platforms
 
 | Platform | Credit |
 |----------|--------|
-| **[Claude Code](https://claude.ai)** — Powered by Anthropic | The primary development platform. AgentBridge was designed and built using Claude Code's agent orchestration capabilities. [Terms](https://www.anthropic.com/legal) · [Privacy](https://www.anthropic.com/privacy) |
-| **[OpenCode](https://opencode.ai)** | Terminal adapter target and testing partner. OpenCode CLI provides the run interface used by AgentBridge's terminal pool. |
+| **[Claude Code](https://claude.ai)** — Powered by Anthropic | The primary development platform. RelayOS was designed and built using Claude Code's agent orchestration capabilities. [Terms](https://www.anthropic.com/legal) · [Privacy](https://www.anthropic.com/privacy) |
+| **[OpenCode](https://opencode.ai)** | Terminal adapter target and testing partner. OpenCode CLI provides the run interface used by RelayOS's terminal pool. |
 | **[MimoCode](https://mimo.ai)** | Terminal adapter target. Mimo's CLI integration enables multi-model frontend workflows. |
 | **OpenAI Codex** | Terminal adapter target for coding-specific tasks. |
 
@@ -382,7 +382,7 @@ AgentBridge is built on the shoulders of giants. We extend our deepest gratitude
 
 ### 🌍 Community Translations
 
-AgentBridge README is available in:
+RelayOS README is available in:
 - [中文 (Chinese)](README_ZH.md)
 - [Deutsch (German)](README_DE.md)
 - [Français (French)](README_FR.md)
@@ -399,6 +399,6 @@ AgentBridge README is available in:
 ---
 
 <p align="center">
-  <strong>AgentBridge</strong> — The coordination layer for AI agents.<br>
+  <strong>RelayOS</strong> — The coordination layer for AI agents.<br>
   <sub>Built with ❤️ for the open-source AI community</sub>
 </p>

@@ -5,10 +5,10 @@ import logging
 import re
 from typing import Any
 
-from agentbridge.adapters import get_adapter
-from agentbridge.config import AgentBridgeConfig
-from agentbridge.memory.store import MemoryStore
-from agentbridge.workflow.models import Workflow, WorkflowStep
+from relayos.adapters import get_adapter
+from relayos.config import RelayOSConfig
+from relayos.memory.store import MemoryStore
+from relayos.workflow.models import Workflow, WorkflowStep
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class WorkflowEngine:
     """Executes multi-step YAML workflows across different agents."""
 
-    def __init__(self, config: AgentBridgeConfig, memory: MemoryStore | None = None):
+    def __init__(self, config: RelayOSConfig, memory: MemoryStore | None = None):
         self.config = config
-        self.memory = memory or MemoryStore(config.memory.get("path", "~/.agentbridge/memory.db"))
+        self.memory = memory or MemoryStore(config.memory.get("path", "~/.relayos/memory.db"))
 
     def run(self, workflow: Workflow) -> list[dict[str, Any]]:
         results = []

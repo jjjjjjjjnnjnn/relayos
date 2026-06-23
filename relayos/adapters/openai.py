@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import httpx
 
-from agentbridge.adapters.base import AdapterError, AgentResponse, BaseAdapter
+from relayos.adapters.base import AdapterError, AgentResponse, BaseAdapter
 
 
 class OpenAIAdapter(BaseAdapter):

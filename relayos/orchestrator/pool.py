@@ -9,10 +9,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from agentbridge.config import load_config
-from agentbridge.memory.store import MemoryStore
-from agentbridge.terminals import get_terminal_class, list_terminal_types
-from agentbridge.terminals.base import BaseTerminal, TerminalInstance, TerminalResult
+from relayos.config import load_config
+from relayos.memory.store import MemoryStore
+from relayos.terminals import get_terminal_class, list_terminal_types
+from relayos.terminals.base import BaseTerminal, TerminalInstance, TerminalResult
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +27,12 @@ class TerminalPool:
     - Persistence via SQLite
     """
 
-    def __init__(self, config_path: Optional[str] = None, memory: Optional[MemoryStore] = None, db_path: str = "~/.agentbridge/terminals.db"):
+    def __init__(self, config_path: Optional[str] = None, memory: Optional[MemoryStore] = None, db_path: str = "~/.relayos/terminals.db"):
         self._terminals: dict[str, TerminalInstance] = {}
         self._adapters: dict[str, BaseTerminal] = {}
         self._lock = threading.Lock()
         self._counter = 0
-        self.memory = memory or MemoryStore("~/.agentbridge/memory.db")
+        self.memory = memory or MemoryStore("~/.relayos/memory.db")
         self._db_path = str(Path(db_path).expanduser())
         self._init_db()
         self._load_from_db()

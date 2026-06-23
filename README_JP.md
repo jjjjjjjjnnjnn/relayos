@@ -1,10 +1,10 @@
 <p align="center">
   <picture>
-    <img src="https://img.shields.io/badge/AgentBridge-v0.1.0a1-8B5CF6?style=for-the-badge" alt="AgentBridge">
+    <img src="https://img.shields.io/badge/RelayOS-v0.1.0a1-8B5CF6?style=for-the-badge" alt="RelayOS">
   </picture>
 </p>
 
-<h1 align="center">AgentBridge</h1>
+<h1 align="center">RelayOS</h1>
 
 <p align="center">
   <strong>AIツール間のコピー＆ペーストとはもうおさらば。</strong><br>
@@ -33,7 +33,7 @@
 
 | セクション | 説明 |
 |---------|-------------|
-| [🎯 概要](#-概要) | AgentBridgeの概要と存在理由 |
+| [🎯 概要](#-概要) | RelayOSの概要と存在理由 |
 | [✨ 機能](#-機能) | 現在の機能 |
 | [⚡ クイックスタート](#-クイックスタート) | インストールと最初のワークフロー |
 | [📖 ユーザーガイド](#-ユーザーガイド) | ワークフロー、ターミナル、メモリ |
@@ -48,7 +48,7 @@
 
 ## 🎯 概要
 
-**AgentBridge** はAIエージェントのためのオープンソースの協調レイヤーです——Dockerがコンテナに対してそうであるように、AIツールのためのものです。
+**RelayOS** はAIエージェントのためのオープンソースの協調レイヤーです——Dockerがコンテナに対してそうであるように、AIツールのためのものです。
 
 ### 問題
 
@@ -63,7 +63,7 @@
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
-│                   AgentBridge                        │
+│                   RelayOS                        │
 │                                                      │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
 │  │  ターミナル  │  │ ワークフロー │  │  共有メモリ  │  │
@@ -113,13 +113,13 @@
 ### インストール
 
 ```bash
-pip install agentbridge
+pip install relayos
 ```
 
 ### 初期化
 
 ```bash
-agentbridge init
+relayos init
 ```
 
 環境変数でAPIキーを設定：
@@ -151,29 +151,29 @@ steps:
 実行：
 
 ```bash
-agentbridge run hello.yaml
+relayos run hello.yaml
 ```
 
 ### ターミナルの管理
 
 ```bash
 # 利用可能なターミナルタイプを確認
-agentbridge terminal types
+relayos terminal types
 
 # アーキテクチャ用のClaude Codeターミナルを作成
-agentbridge terminal create claude -n architect -m claude-sonnet-4-20250514
+relayos terminal create claude -n architect -m claude-sonnet-4-20250514
 
 # クイックタスク用にもう一つ作成
-agentbridge terminal create claude -n assistant -m claude-haiku-4-20251001
+relayos terminal create claude -n assistant -m claude-haiku-4-20251001
 
 # 調査用のGeminiターミナルを作成
-agentbridge terminal create google -n researcher -m gemini-2.5-flash
+relayos terminal create google -n researcher -m gemini-2.5-flash
 
 # 実行中の全ターミナルを表示
-agentbridge terminal list
+relayos terminal list
 
 # 特定のターミナルでプロンプトを実行
-agentbridge terminal exec opencode "Analyze this data"
+relayos terminal exec opencode "Analyze this data"
 ```
 
 ---
@@ -213,7 +213,7 @@ steps:
 
 ### ターミナル
 
-AgentBridgeは各AI CLIを「ターミナル」——独立して動作するワーカーとして扱います：
+RelayOSは各AI CLIを「ターミナル」——独立して動作するワーカーとして扱います：
 
 | ターミナル | バイナリ | デフォルトモデル | ステータス |
 |----------|--------|---------------|--------|
@@ -228,20 +228,20 @@ AgentBridgeは各AI CLIを「ターミナル」——独立して動作するワ
 
 ```bash
 # 保存
-agentbridge remember my_key "some value"
+relayos remember my_key "some value"
 
 # 取得
-agentbridge recall my_key
+relayos recall my_key
 
 # 全キーを一覧表示
-agentbridge memory-list
+relayos memory-list
 ```
 
 ---
 
 ## ⚙️ 設定
 
-設定ファイルの場所：`~/.agentbridge/config.yaml`（または `$AGENTBRIDGE_CONFIG_DIR/config.yaml`）
+設定ファイルの場所：`~/.relayos/config.yaml`（または `$AGENTBRIDGE_CONFIG_DIR/config.yaml`）
 
 ```yaml
 providers:
@@ -288,11 +288,11 @@ routing:
 ```
                     ┌─────────────────────┐
                     │   CLI (Click)       │
-                    │  agentbridge run     │
+                    │  relayos run     │
                     └──────────┬──────────┘
                                │
                     ┌──────────▼──────────┐
-                    │   AgentBridge Core    │
+                    │   RelayOS Core    │
                     │                      │
                     │  ┌────────────────┐  │
                     │  │  ターミナル    │──│──→ Claude Code, Mimo, OpenCode...
@@ -349,14 +349,14 @@ routing:
 
 ## 🙏 謝辞
 
-AgentBridgeは巨人の肩の上に成り立っています。以下のプロジェクトに深く感謝いたします：
+RelayOSは巨人の肩の上に成り立っています。以下のプロジェクトに深く感謝いたします：
 
 ### 🖥️ ターミナルプラットフォーム
 
 | プラットフォーム | 謝辞 |
 |----------|--------|
-| **[Claude Code](https://claude.ai)** — Anthropic提供 | 主要開発プラットフォーム。AgentBridgeはClaude Codeのエージェントオーケストレーション機能を使用して設計・構築されました。[利用規約](https://www.anthropic.com/legal) · [プライバシー](https://www.anthropic.com/privacy) |
-| **[OpenCode](https://opencode.ai)** | ターミナルアダプター対象およびテストパートナー。OpenCode CLIはAgentBridgeのターミナルプールが使用する実行インターフェースを提供します。 |
+| **[Claude Code](https://claude.ai)** — Anthropic提供 | 主要開発プラットフォーム。RelayOSはClaude Codeのエージェントオーケストレーション機能を使用して設計・構築されました。[利用規約](https://www.anthropic.com/legal) · [プライバシー](https://www.anthropic.com/privacy) |
+| **[OpenCode](https://opencode.ai)** | ターミナルアダプター対象およびテストパートナー。OpenCode CLIはRelayOSのターミナルプールが使用する実行インターフェースを提供します。 |
 | **[MimoCode](https://mimo.ai)** | ターミナルアダプター対象。MimoのCLI統合により、マルチモデルのフロントエンドワークフローが可能になります。 |
 | **OpenAI Codex** | コーディングタスク向けターミナルアダプター対象。 |
 
@@ -384,7 +384,7 @@ AgentBridgeは巨人の肩の上に成り立っています。以下のプロジ
 
 ### 🌍 コミュニティ翻訳
 
-AgentBridge READMEは以下の言語で利用可能です：
+RelayOS READMEは以下の言語で利用可能です：
 - [中文 (Chinese)](README_ZH.md)
 - [Deutsch (German)](README_DE.md)
 - [Français (French)](README_FR.md)
@@ -401,6 +401,6 @@ AgentBridge READMEは以下の言語で利用可能です：
 ---
 
 <p align="center">
-  <strong>AgentBridge</strong> — AIエージェントのための協調レイヤー。<br>
+  <strong>RelayOS</strong> — AIエージェントのための協調レイヤー。<br>
   <sub>オープンソースAIコミュニティのために ❤️ を込めて</sub>
 </p>

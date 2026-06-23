@@ -1,4 +1,4 @@
-"""CLI entry point -- `agentbridge run workflow.yaml` and more."""
+"""CLI entry point -- `relayos run workflow.yaml` and more."""
 from __future__ import annotations
 
 import logging
@@ -7,18 +7,18 @@ from pathlib import Path
 
 import click
 
-from agentbridge import __version__
-from agentbridge.adapters import get_adapter, list_adapters
-from agentbridge.config import load_config
-from agentbridge.memory.store import MemoryStore
-from agentbridge.workflow.engine import WorkflowEngine
-from agentbridge.workflow.models import Workflow, validate_workflow
+from relayos import __version__
+from relayos.adapters import get_adapter, list_adapters
+from relayos.config import load_config
+from relayos.memory.store import MemoryStore
+from relayos.workflow.engine import WorkflowEngine
+from relayos.workflow.models import Workflow, validate_workflow
 
 
 @click.group()
-@click.version_option(version=__version__, message="AgentBridge v%(version)s")
+@click.version_option(version=__version__, message="RelayOS v%(version)s")
 def cli():
-    """AgentBridge — Multi-agent orchestration for AI tools.
+    """RelayOS — Multi-agent orchestration for AI tools.
 
     Run workflows across Claude, GPT, Gemini and local models
     with shared memory and MCP tool integration.
@@ -58,7 +58,7 @@ def run(workflow_file: str, config: str | None, verbose: bool, list_adapters: bo
             click.echo(f"  [ERR] {e}", err=True)
         sys.exit(1)
 
-    click.echo("+ AgentBridge v" + __version__)
+    click.echo("+ RelayOS v" + __version__)
     click.echo("| Workflow: " + wf.name)
     click.echo("| Steps: " + str(len(wf.steps)))
     for i, step in enumerate(wf.steps):
@@ -66,7 +66,7 @@ def run(workflow_file: str, config: str | None, verbose: bool, list_adapters: bo
     click.echo("+")
 
     # Initialize engine
-    memory = MemoryStore(cfg.memory.get("path", "~/.agentbridge/memory.db"))
+    memory = MemoryStore(cfg.memory.get("path", "~/.relayos/memory.db"))
     engine = WorkflowEngine(cfg, memory)
 
     # Run
@@ -121,14 +121,14 @@ def chat(agent_name: str, prompt: tuple[str], model: str | None, config: str | N
 @cli.command()
 def agents():
     """List all available agent adapters and their default models."""
-    from agentbridge.adapters import list_adapters
-    from agentbridge.config import PROVIDER_ENV_MAP
+    from relayos.adapters import list_adapters
+    from relayos.config import PROVIDER_ENV_MAP
 
     click.echo("Available agents:")
     click.echo(f"{'Name':<15} {'Provider':<12} {'Default Model':<30} {'Config Key'}")
     click.echo("-" * 80)
     for name in list_adapters():
-        from agentbridge.adapters import get_adapter
+        from relayos.adapters import get_adapter
         try:
             inst = get_adapter(name, {})
             provider = getattr(inst, "provider", name)
@@ -145,7 +145,7 @@ def agents():
 @click.argument("key")
 @click.argument("value", nargs=-1, required=True)
 @click.option("-s", "--session", help="Session ID")
-@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
+@click.option("--db", default="~/.relayos/memory.db", help="DB path")
 def remember(key: str, value: tuple[str], session: str | None, db: str):
     """Store a value in shared memory."""
     store = MemoryStore(db)
@@ -156,7 +156,7 @@ def remember(key: str, value: tuple[str], session: str | None, db: str):
 @cli.command()
 @click.argument("key")
 @click.option("-s", "--session", help="Session ID")
-@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
+@click.option("--db", default="~/.relayos/memory.db", help="DB path")
 def recall(key: str, session: str | None, db: str):
     """Retrieve a value from shared memory."""
     store = MemoryStore(db)
@@ -168,7 +168,7 @@ def recall(key: str, session: str | None, db: str):
 
 
 @cli.command()
-@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
+@click.option("--db", default="~/.relayos/memory.db", help="DB path")
 def memory_list(db: str):
     """List all keys in shared memory."""
     store = MemoryStore(db)
@@ -182,17 +182,17 @@ def memory_list(db: str):
 
 
 @cli.command()
-@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
+@click.option("--db", default="~/.relayos/memory.db", help="DB path")
 def init(db: str):
     """Create default config file."""
-    from agentbridge.config import get_config_dir
+    from relayos.config import get_config_dir
     config_path = get_config_dir() / "config.yaml"
     if config_path.exists():
         click.echo(f"Config already exists: {config_path}")
         return
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text("""# AgentBridge Configuration
+    config_path.write_text("""# RelayOS Configuration
 # Set API keys via environment variables or uncomment below.
 
 providers:
@@ -245,7 +245,7 @@ routing:
 mcp_servers: {}
 """)
     click.echo(f"[OK] Created {config_path}")
-    click.echo("  Edit it to add your API keys, then run: agentbridge run <workflow.yaml>")
+    click.echo("  Edit it to add your API keys, then run: relayos run <workflow.yaml>")
 
 
 # ─── Terminal Management ─────────────────────────────────────────
@@ -260,7 +260,7 @@ def terminal():
 @terminal.command("types")
 def terminal_types():
     """List all available terminal types and their installation status."""
-    from agentbridge.terminals import list_terminal_types
+    from relayos.terminals import list_terminal_types
 
     click.echo("Available terminal types:")
     click.echo(f"{'Type':<15} {'Binary':<15} {'Default Model':<30} {'Installed'}")
@@ -280,7 +280,7 @@ def terminal_create(type_name: str, name: str | None, model: str | None, config:
 
     TYPE_NAME is one of: claude, mimo, opencode, codex, qcode, custom
     """
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     inst = pool.create(type_name=type_name, name=name, model=model)
@@ -295,13 +295,13 @@ def terminal_create(type_name: str, name: str | None, model: str | None, config:
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_list(type_filter: str | None, config: str | None):
     """List all running terminal instances."""
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     instances = pool.list(type_filter=type_filter)
 
     if not instances:
-        click.echo("No terminals. Create one: agentbridge terminal create claude")
+        click.echo("No terminals. Create one: relayos terminal create claude")
         return
 
     h = f"{'ID':<20} {'Name':<20} {'Type':<12} {'Model':<30} {'Status':<10} {'Tasks':<8}"
@@ -317,7 +317,7 @@ def terminal_list(type_filter: str | None, config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_run(terminal_id: str, prompt: tuple[str], config: str | None):
     """Run a prompt on a specific terminal."""
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     full_prompt = " ".join(prompt)
@@ -335,7 +335,7 @@ def terminal_run(terminal_id: str, prompt: tuple[str], config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_remove(terminal_id: str, config: str | None):
     """Remove a terminal instance."""
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     if pool.remove(terminal_id):
@@ -349,7 +349,7 @@ def terminal_remove(terminal_id: str, config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_stats(config: str | None):
     """Show terminal pool statistics."""
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     s = pool.stats()
@@ -370,7 +370,7 @@ def terminal_stats(config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_exec(type_name: str, prompt: tuple[str], model: str | None, config: str | None):
     """Run on first available terminal of given type (auto-create if needed)."""
-    from agentbridge.orchestrator.pool import TerminalPool
+    from relayos.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     full_prompt = " ".join(prompt)

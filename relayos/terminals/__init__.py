@@ -1,8 +1,8 @@
 """Terminal registry — discover and create terminal instances."""
 from __future__ import annotations
 
-from agentbridge.terminals.base import BaseTerminal
-from agentbridge.terminals.adapters import (
+from relayos.terminals.base import BaseTerminal
+from relayos.terminals.adapters import (
     ClaudeCodeTerminal,
     CodexTerminal,
     CustomTerminal,

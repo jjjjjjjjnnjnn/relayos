@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to AgentBridge will be documented in this file.
+All notable changes to RelayOS will be documented in this file.
 
 ## [0.1.0a1] - 2026-06-23
 

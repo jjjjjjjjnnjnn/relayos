@@ -11,7 +11,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_PATH = Path.home() / ".agentbridge" / "config.yaml"
+DEFAULT_CONFIG_PATH = Path.home() / ".relayos" / "config.yaml"
 
 # Provider to environment variable mapping (used consistently across modules)
 PROVIDER_ENV_MAP: dict[str, str] = {
@@ -24,11 +24,11 @@ PROVIDER_ENV_MAP: dict[str, str] = {
 
 
 def get_config_dir() -> Path:
-    """Get config directory, respecting AGENTBRIDGE_CONFIG_DIR env var."""
-    override = os.environ.get("AGENTBRIDGE_CONFIG_DIR")
+    """Get config directory, respecting RELAYOS_CONFIG_DIR env var."""
+    override = os.environ.get("RELAYOS_CONFIG_DIR")
     if override:
         return Path(override)
-    return Path.home() / ".agentbridge"
+    return Path.home() / ".relayos"
 
 
 @dataclass
@@ -47,10 +47,10 @@ class RoutingPolicy:
 
 
 @dataclass
-class AgentBridgeConfig:
+class RelayOSConfig:
     providers: dict[str, ProviderConfig] = field(default_factory=dict)
     routing: RoutingPolicy = field(default_factory=RoutingPolicy)
-    memory: dict = field(default_factory=lambda: {"type": "sqlite", "path": "~/.agentbridge/memory.db"})
+    memory: dict = field(default_factory=lambda: {"type": "sqlite", "path": "~/.relayos/memory.db"})
     mcp_servers: dict[str, dict] = field(default_factory=dict)
     terminals: list[dict] = field(default_factory=list)  # terminal definitions
 
@@ -64,13 +64,13 @@ class AgentBridgeConfig:
         return None
 
 
-def load_config(path: Optional[Path] = None) -> AgentBridgeConfig:
+def load_config(path: Optional[Path] = None) -> RelayOSConfig:
     if not path:
         config_dir = get_config_dir()
         path = config_dir / "config.yaml"
     if not path.exists():
-        logger.warning(f"Config not found at {path}. Run 'agentbridge init' to create one.")
-        return AgentBridgeConfig()
+        logger.warning(f"Config not found at {path}. Run 'relayos init' to create one.")
+        return RelayOSConfig()
 
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     providers = {}
@@ -90,10 +90,10 @@ def load_config(path: Optional[Path] = None) -> AgentBridgeConfig:
     )
 
     mcp_servers = raw.get("mcp_servers") or {}
-    memory = raw.get("memory") or {"type": "sqlite", "path": "~/.agentbridge/memory.db"}
+    memory = raw.get("memory") or {"type": "sqlite", "path": "~/.relayos/memory.db"}
     terminals = raw.get("terminals") or []
 
-    return AgentBridgeConfig(
+    return RelayOSConfig(
         providers=providers,
         routing=routing,
         memory=memory,

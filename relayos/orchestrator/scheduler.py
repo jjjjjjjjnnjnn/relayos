@@ -4,9 +4,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from agentbridge.memory.store import MemoryStore
-from agentbridge.orchestrator.pool import TerminalPool
-from agentbridge.terminals.base import TerminalResult
+from relayos.memory.store import MemoryStore
+from relayos.orchestrator.pool import TerminalPool
+from relayos.terminals.base import TerminalResult
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class Scheduler:
 
     def __init__(self, pool: TerminalPool, memory: Optional[MemoryStore] = None):
         self.pool = pool
-        self.memory = memory or MemoryStore("~/.agentbridge/memory.db")
+        self.memory = memory or MemoryStore("~/.relayos/memory.db")
 
     def run_sequential(self, steps: list[dict[str, Any]]) -> list[TerminalResult]:
         """Run steps sequentially, passing context between them."""

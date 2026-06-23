@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 import httpx
 
-from agentbridge.adapters.base import AdapterError, AgentResponse, BaseAdapter
+from relayos.adapters.base import AdapterError, AgentResponse, BaseAdapter
 
 
 class GoogleAdapter(BaseAdapter):
