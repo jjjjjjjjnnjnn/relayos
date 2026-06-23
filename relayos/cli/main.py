@@ -674,6 +674,61 @@ def plan(task: tuple[str], profile: str, execute: bool):
         click.echo(f"\n[OK] {done}/{len(p.steps)} steps completed")
 
 
+# ─── Project Commands ───────────────────────────────────────
+
+
+@cli.group()
+def project():
+    """Manage projects — cross-session knowledge base."""
+    pass
+
+
+@project.command("create")
+@click.argument("name")
+@click.argument("description", default="")
+def project_create(name: str, description: str):
+    """Create a new project for cross-session knowledge."""
+    from relayos.core.knowledge import ProjectStore
+    ps = ProjectStore()
+    pid = ps.create_project(name, description)
+    click.echo(f"[OK] Created project '{name}' ({pid})")
+    click.echo(f"  Now use: relay session chat -p {pid}")
+
+
+@project.command("list")
+def project_list():
+    """List all projects with knowledge and session counts."""
+    from relayos.core.knowledge import ProjectStore
+    ps = ProjectStore()
+    projects = ps.list_projects()
+    if not projects:
+        click.echo("No projects yet. Create one: relay project create <name>")
+        return
+    click.echo(f"{'ID':<24} {'Name':<25} {'Knowledge':<10} {'Sessions':<10}")
+    click.echo("-" * 70)
+    for p in projects:
+        click.echo(f"{p['id']:<24} {p['name']:<25} {p['knowledge_count']:<10} {p['session_count']:<10}")
+
+
+@project.command("knowledge")
+@click.argument("project_id")
+@click.option("-d", "--domain", help="Filter by domain")
+def project_knowledge(project_id: str, domain: str | None):
+    """Show accumulated knowledge for a project."""
+    from relayos.core.knowledge import ProjectStore
+    ps = ProjectStore()
+    knowledge = ps.query_knowledge(project_id, domain, max_items=30)
+    if not knowledge:
+        click.echo("No knowledge accumulated yet. Run some sessions first.")
+        return
+    click.echo(f"Project Knowledge ({len(knowledge)} items):")
+    click.echo("-" * 60)
+    for k in knowledge:
+        conf = f"[{k['confidence']:.0%}]" if k['confidence'] < 1.0 else ""
+        val = k.get("value", "")[:80]
+        click.echo(f"  {k['key']:<35} {conf} {val}")
+
+
 # ─── Session Commands ───────────────────────────────────────
 
 
@@ -793,12 +848,13 @@ def session_list(limit: int):
     if not sessions:
         click.echo("No sessions yet.")
         return
-    click.echo(f"{'ID':<20} {'Name':<25} {'Mode':<8} {'Capability':<12} {'Strategy':<12} {'Msgs':<6}")
+    click.echo(f"{'ID':<20} {'Name':<25} {'Mode':<8} {'Cap':<12} {'Proj':<12} {'Msgs':<6}")
     click.echo("-" * 80)
     for s in sessions:
         cap = s.get('last_capability', '') or '-'
-        strat = s.get('last_strategy', '') or '-'
-        click.echo(f"{s['id']:<20} {s['name']:<25} {s['mode']:<8} {cap:<12} {strat:<12} {s['msg_count']:<6}")
+        proj = s.get('project_id', '') or '-'
+        if len(proj) > 10: proj = proj[:10] + ".."
+        click.echo(f"{s['id']:<20} {s['name']:<25} {s['mode']:<8} {cap:<12} {proj:<12} {s['msg_count']:<6}")
 
 
 @session.command("plan")
