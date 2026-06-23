@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentmesh"
+name = "agentbridge"
 version = "0.1.0a1"
 description = "Multi-agent orchestration layer for AI tools"
 readme = "README.md"
@@ -19,14 +19,14 @@ dependencies = [
 ]
 
 [project.scripts]
-agentmesh = "agentmesh.cli.main:cli"
+agentmesh = "agentbridge.cli.main:cli"
 
-[project.entry-points."agentmesh.adapters"]
-openai = "agentmesh.adapters.openai:OpenAIAdapter"
-anthropic = "agentmesh.adapters.anthropic:AnthropicAdapter"
-google = "agentmesh.adapters.google:GoogleAdapter"
-ollama = "agentmesh.adapters.ollama:OllamaAdapter"
-deepseek = "agentmesh.adapters.deepseek:DeepSeekAdapter"
+[project.entry-points."agentbridge.adapters"]
+openai = "agentbridge.adapters.openai:OpenAIAdapter"
+anthropic = "agentbridge.adapters.anthropic:AnthropicAdapter"
+google = "agentbridge.adapters.google:GoogleAdapter"
+ollama = "agentbridge.adapters.ollama:OllamaAdapter"
+deepseek = "agentbridge.adapters.deepseek:DeepSeekAdapter"
 
 [tool.setuptools.packages.find]
 where = ["."]

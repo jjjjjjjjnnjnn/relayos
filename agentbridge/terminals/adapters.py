@@ -1,5 +1,5 @@
 """Terminal adapters for all supported AI CLIs."""
-from agentmesh.terminals.base import BaseTerminal, TerminalInstance
+from agentbridge.terminals.base import BaseTerminal, TerminalInstance
 
 
 class ClaudeCodeTerminal(BaseTerminal):

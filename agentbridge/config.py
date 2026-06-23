@@ -30,7 +30,7 @@ class RoutingPolicy:
 class AgentMeshConfig:
     providers: dict[str, ProviderConfig] = field(default_factory=dict)
     routing: RoutingPolicy = field(default_factory=RoutingPolicy)
-    memory: dict = field(default_factory=lambda: {"type": "sqlite", "path": "~/.agentmesh/memory.db"})
+    memory: dict = field(default_factory=lambda: {"type": "sqlite", "path": "~/.agentbridge/memory.db"})
     mcp_servers: dict[str, dict] = field(default_factory=dict)
     terminals: list[dict] = field(default_factory=list)  # terminal definitions
 
@@ -71,7 +71,7 @@ def load_config(path: Optional[Path] = None) -> AgentMeshConfig:
     )
 
     mcp_servers = raw.get("mcp_servers") or {}
-    memory = raw.get("memory") or {"type": "sqlite", "path": "~/.agentmesh/memory.db"}
+    memory = raw.get("memory") or {"type": "sqlite", "path": "~/.agentbridge/memory.db"}
     terminals = raw.get("terminals") or []
 
     return AgentMeshConfig(

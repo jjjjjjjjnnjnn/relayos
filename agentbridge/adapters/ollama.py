@@ -1,7 +1,7 @@
 """Ollama local model adapter."""
 from __future__ import annotations
 
-from agentmesh.adapters.base import AgentResponse, BaseAdapter
+from agentbridge.adapters.base import AgentResponse, BaseAdapter
 
 
 class OllamaAdapter(BaseAdapter):

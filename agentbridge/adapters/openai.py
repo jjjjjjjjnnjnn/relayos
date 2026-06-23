@@ -1,7 +1,7 @@
 """OpenAI-compatible API adapter (GPT-4o, GPT-4o-mini)."""
 from __future__ import annotations
 
-from agentmesh.adapters.base import AgentResponse, BaseAdapter
+from agentbridge.adapters.base import AgentResponse, BaseAdapter
 
 
 class OpenAIAdapter(BaseAdapter):

@@ -16,7 +16,7 @@ class MemoryStore:
     enabling cross-agent context sharing.
     """
 
-    def __init__(self, db_path: str = "~/.agentmesh/memory.db"):
+    def __init__(self, db_path: str = "~/.agentbridge/memory.db"):
         self._local = threading.local()
         path = Path(db_path).expanduser()
         path.parent.mkdir(parents=True, exist_ok=True)

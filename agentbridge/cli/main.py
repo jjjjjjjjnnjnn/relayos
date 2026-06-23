@@ -8,11 +8,11 @@ from pathlib import Path
 import click
 
 from agentmesh import __version__
-from agentmesh.adapters import get_adapter, list_adapters
-from agentmesh.config import load_config
-from agentmesh.memory.store import MemoryStore
-from agentmesh.workflow.engine import WorkflowEngine
-from agentmesh.workflow.models import Workflow, validate_workflow
+from agentbridge.adapters import get_adapter, list_adapters
+from agentbridge.config import load_config
+from agentbridge.memory.store import MemoryStore
+from agentbridge.workflow.engine import WorkflowEngine
+from agentbridge.workflow.models import Workflow, validate_workflow
 
 
 @click.group()
@@ -66,7 +66,7 @@ def run(workflow_file: str, config: str | None, verbose: bool, list_adapters: bo
     click.echo("+")
 
     # Initialize engine
-    memory = MemoryStore(cfg.memory.get("path", "~/.agentmesh/memory.db"))
+    memory = MemoryStore(cfg.memory.get("path", "~/.agentbridge/memory.db"))
     engine = WorkflowEngine(cfg, memory)
 
     # Run
@@ -125,7 +125,7 @@ def agents():
     click.echo(f"{'Name':<15} {'Provider':<12} {'Default Model':<30} {'Config Key'}")
     click.echo("-" * 80)
 
-    from agentmesh.adapters import _REGISTRY
+    from agentbridge.adapters import _REGISTRY
     for name, cls in sorted(_REGISTRY.items()):
         provider = cls.provider if hasattr(cls, "provider") else name
         default = cls.default_model if hasattr(cls, "default_model") else "-"
@@ -142,7 +142,7 @@ def agents():
 @click.argument("key")
 @click.argument("value", nargs=-1, required=True)
 @click.option("-s", "--session", help="Session ID")
-@click.option("--db", default="~/.agentmesh/memory.db", help="DB path")
+@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
 def remember(key: str, value: tuple[str], session: str | None, db: str):
     """Store a value in shared memory."""
     store = MemoryStore(db)
@@ -153,7 +153,7 @@ def remember(key: str, value: tuple[str], session: str | None, db: str):
 @cli.command()
 @click.argument("key")
 @click.option("-s", "--session", help="Session ID")
-@click.option("--db", default="~/.agentmesh/memory.db", help="DB path")
+@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
 def recall(key: str, session: str | None, db: str):
     """Retrieve a value from shared memory."""
     store = MemoryStore(db)
@@ -165,7 +165,7 @@ def recall(key: str, session: str | None, db: str):
 
 
 @cli.command()
-@click.option("--db", default="~/.agentmesh/memory.db", help="DB path")
+@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
 def memory_list(db: str):
     """List all keys in shared memory."""
     store = MemoryStore(db)
@@ -179,7 +179,7 @@ def memory_list(db: str):
 
 
 @cli.command()
-@click.option("--db", default="~/.agentmesh/memory.db", help="DB path")
+@click.option("--db", default="~/.agentbridge/memory.db", help="DB path")
 def init(db: str):
     """Create default config file."""
     config_path = Path.home() / ".agentmesh" / "config.yaml"
@@ -256,7 +256,7 @@ def terminal():
 @terminal.command("types")
 def terminal_types():
     """List all available terminal types and their installation status."""
-    from agentmesh.terminals import list_terminal_types
+    from agentbridge.terminals import list_terminal_types
 
     click.echo("Available terminal types:")
     click.echo(f"{'Type':<15} {'Binary':<15} {'Default Model':<30} {'Installed'}")
@@ -276,7 +276,7 @@ def terminal_create(type_name: str, name: str | None, model: str | None, config:
 
     TYPE_NAME is one of: claude, mimo, opencode, codex, qcode, custom
     """
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     inst = pool.create(type_name=type_name, name=name, model=model)
@@ -291,7 +291,7 @@ def terminal_create(type_name: str, name: str | None, model: str | None, config:
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_list(type_filter: str | None, config: str | None):
     """List all running terminal instances."""
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     instances = pool.list(type_filter=type_filter)
@@ -313,7 +313,7 @@ def terminal_list(type_filter: str | None, config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_run(terminal_id: str, prompt: tuple[str], config: str | None):
     """Run a prompt on a specific terminal."""
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     full_prompt = " ".join(prompt)
@@ -331,7 +331,7 @@ def terminal_run(terminal_id: str, prompt: tuple[str], config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_remove(terminal_id: str, config: str | None):
     """Remove a terminal instance."""
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     if pool.remove(terminal_id):
@@ -345,7 +345,7 @@ def terminal_remove(terminal_id: str, config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_stats(config: str | None):
     """Show terminal pool statistics."""
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     s = pool.stats()
@@ -366,7 +366,7 @@ def terminal_stats(config: str | None):
 @click.option("-c", "--config", type=click.Path(), help="Config file path")
 def terminal_exec(type_name: str, prompt: tuple[str], model: str | None, config: str | None):
     """Run on first available terminal of given type (auto-create if needed)."""
-    from agentmesh.orchestrator.pool import TerminalPool
+    from agentbridge.orchestrator.pool import TerminalPool
 
     pool = TerminalPool(config)
     full_prompt = " ".join(prompt)

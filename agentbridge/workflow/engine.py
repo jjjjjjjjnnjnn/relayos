@@ -5,10 +5,10 @@ import logging
 import re
 from typing import Any
 
-from agentmesh.adapters import get_adapter
-from agentmesh.config import AgentMeshConfig
-from agentmesh.memory.store import MemoryStore
-from agentmesh.workflow.models import Workflow, WorkflowStep
+from agentbridge.adapters import get_adapter
+from agentbridge.config import AgentMeshConfig
+from agentbridge.memory.store import MemoryStore
+from agentbridge.workflow.models import Workflow, WorkflowStep
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class WorkflowEngine:
 
     def __init__(self, config: AgentMeshConfig, memory: MemoryStore | None = None):
         self.config = config
-        self.memory = memory or MemoryStore(config.memory.get("path", "~/.agentmesh/memory.db"))
+        self.memory = memory or MemoryStore(config.memory.get("path", "~/.agentbridge/memory.db"))
 
     def run(self, workflow: Workflow) -> list[dict[str, Any]]:
         results = []

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from agentmesh.adapters.base import BaseAdapter
+from agentbridge.adapters.base import BaseAdapter
 
 _REGISTRY: dict[str, type[BaseAdapter]] = {}
 
@@ -25,11 +25,11 @@ def list_adapters() -> list[str]:
 
 
 # Late imports to avoid circular deps
-from agentmesh.adapters.openai import OpenAIAdapter  # noqa: E402
-from agentmesh.adapters.anthropic import AnthropicAdapter  # noqa: E402
-from agentmesh.adapters.google import GoogleAdapter  # noqa: E402
-from agentmesh.adapters.ollama import OllamaAdapter  # noqa: E402
-from agentmesh.adapters.deepseek import DeepSeekAdapter  # noqa: E402
+from agentbridge.adapters.openai import OpenAIAdapter  # noqa: E402
+from agentbridge.adapters.anthropic import AnthropicAdapter  # noqa: E402
+from agentbridge.adapters.google import GoogleAdapter  # noqa: E402
+from agentbridge.adapters.ollama import OllamaAdapter  # noqa: E402
+from agentbridge.adapters.deepseek import DeepSeekAdapter  # noqa: E402
 
 register("openai", OpenAIAdapter)
 register("anthropic", AnthropicAdapter)

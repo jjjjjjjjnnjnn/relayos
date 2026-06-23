@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from agentmesh.adapters.base import AgentResponse, BaseAdapter
+from agentbridge.adapters.base import AgentResponse, BaseAdapter
 
 
 class GoogleAdapter(BaseAdapter):
