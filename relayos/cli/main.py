@@ -820,6 +820,54 @@ def session_plan(task: tuple[str], profile: str):
     click.echo(planner.format_graph(graph))
 
 
+@session.command("execute")
+@click.argument("task", nargs=-1, required=True)
+@click.option("-p", "--profile", default="balanced", help="Routing profile")
+def session_execute(task: tuple[str], profile: str):
+    """Execute a task through the capability graph engine.
+
+    Decomposes the task, executes each step with schema-aware
+    artifact passing (not full text), and shows results.
+
+    Example:
+        relay session execute "Design a payment system"
+    """
+    from relayos.core.planner import ExecutionPlanner, TaskGraphExecutor
+    from relayos.core.session import SessionStore
+    import uuid
+
+    planner = ExecutionPlanner()
+    executor = TaskGraphExecutor()
+    ss = SessionStore()
+
+    full = " ".join(task)
+    graph = planner.build_capability_graph(full, profile)
+
+    # Create session
+    sess = ss.create_session(full[:40], "execute", profile=profile)
+    click.echo(f"Executing: {full}")
+    click.echo(f"Profile: {profile}")
+    click.echo(f"Steps: {graph['total_steps']}")
+    click.echo()
+
+    # Execute with schema-aware artifact passing
+    result = executor.execute(graph, sess.id)
+
+    # Show results
+    for r in result.get("results", []):
+        if r["status"] == "done":
+            art = executor.artifacts.get(r["artifact_id"])
+            content = art["content"] if art else {}
+            preview = str(list(content.keys())[:4]) if isinstance(content, dict) else str(content)[:80]
+            click.echo(f"  ✓ {r['type']:<12} {r['model']:<32} {r['tokens']}t")
+            click.echo(f"      {preview}")
+        else:
+            click.echo(f"  ✗ {r['type']:<12} {r.get('error', 'unknown')}")
+
+    click.echo(f"\nSession: {sess.id}")
+    click.echo(f"Artifacts: {len(result.get('results', []))}")
+
+
 @session.command("timeline")
 @click.argument("session_id")
 @click.option("-n", "--limit", default=20, type=int, help="Number of events")

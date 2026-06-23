@@ -229,3 +229,100 @@ class ExecutionPlanner:
             lines.append("")
 
         return "\n".join(lines)
+
+
+class TaskGraphExecutor:
+    """Executes capability graphs with schema-aware artifact passing.
+
+    Steps pass ARTIFACT REFERENCES, not full text.
+    Context assembly extracts only schema-declared fields.
+    ~800 token per step regardless of graph depth.
+    """
+
+    def __init__(self):
+        from relayos.adapters import get_adapter as ga
+        from relayos.config import load_config as lc
+        from relayos.core.artifacts import ArtifactStore
+        from relayos.core.schemas import get_schema as gs, get_consumed_fields as gcf, get_input_sources as gis
+        self._get_adapter = ga
+        self._load_config = lc
+        self.artifacts = ArtifactStore()
+        self.get_schema = gs
+        self.get_consumed_fields = gcf
+        self.get_input_sources = gis
+
+    def execute(self, graph: dict, session_id: str = "") -> dict:
+        config = self._load_config()
+        task = graph["task"]
+        all_results = []
+
+        for step in graph["steps"]:
+            step_id = step["id"]
+            step_type = step["capability"]
+            model = step["model"]
+            provider = step["provider"]
+
+            upstream = ""
+            schema = self.get_schema(step_type)
+            input_sources = self.get_input_sources(step_type)
+            consume_fields = self.get_consumed_fields(step_type)
+
+            for src in input_sources:
+                extracted = self.artifacts.extract_fields(session_id, src, consume_fields)
+                if extracted:
+                    import json
+                    upstream += f"\nFrom {src}: {json.dumps(extracted, ensure_ascii=False)[:300]}"
+
+            prompt = schema.get("prompt_template", "{task}")
+            prompt = prompt.replace("{task}", task)
+            if upstream:
+                prompt = prompt.replace("{upstream_findings}", upstream[:400])
+                prompt = prompt.replace("{upstream_constraints}", upstream[:200])
+                prompt = prompt.replace("{upstream_components}", upstream[:300])
+                prompt = prompt.replace("{upstream_decisions}", upstream[:200])
+                prompt = prompt.replace("{upstream_files}", upstream[:200])
+                for ph in ["{upstream_findings}", "{upstream_constraints}",
+                           "{upstream_components}", "{upstream_decisions}",
+                           "{upstream_files}"]:
+                    prompt = prompt.replace(ph, "")
+
+            try:
+                adapter = self._get_adapter(provider, {
+                    "api_key": config.resolve_api_key(provider),
+                    "model": model,
+                })
+                response = adapter.chat(prompt)
+                import json as _j
+                try:
+                    parsed = _j.loads(response.content)
+                except (_j.JSONDecodeError, TypeError):
+                    parsed = {"result": response.content[:500]}
+
+                tokens = sum(response.usage.values()) if response.usage else 0
+                art_id = self.artifacts.store(
+                    session_id=session_id, step_id=step_id,
+                    step_type=step_type, content=parsed,
+                    model_used=response.model, tokens_used=tokens,
+                )
+                all_results.append({
+                    "step": step_id, "type": step_type,
+                    "model": response.model, "artifact_id": art_id,
+                    "tokens": tokens, "status": "done",
+                })
+            except Exception as e:
+                all_results.append({
+                    "step": step_id, "type": step_type,
+                    "error": str(e), "status": "error",
+                })
+
+        return {"task": task, "steps": len(graph["steps"]), "results": all_results}
+
+    def resume(self, graph: dict, session_id: str) -> dict:
+        existing = self.artifacts.get_session_artifacts(session_id)
+        done_ids = {a["step_id"] for a in existing}
+        remaining = [s for s in graph["steps"] if s["id"] not in done_ids]
+        if not remaining:
+            return {"task": graph["task"], "status": "already_complete", "steps": 0}
+        sub = dict(graph)
+        sub["steps"] = remaining
+        return self.execute(sub, session_id)
