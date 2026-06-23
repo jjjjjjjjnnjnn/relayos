@@ -558,7 +558,64 @@ def team_list():
         click.echo(f"  {t['name']:<15} {t['worker_count']} workers — {t['description']}")
 
 
-# ─── Profile & Estimate ─────────────────────────────────────
+# ─── Terminal Switching ─────────────────────────────────────
+
+
+@cli.command()
+@click.argument("terminal_name", required=False)
+@click.option("--list", "list_flag", is_flag=True, help="Show available terminals")
+def use(terminal_name: str | None, list_flag: bool):
+    """Switch default terminal or show available terminals.
+
+    Examples:
+        relay use opencode    # switch to OpenCode (free)
+        relay use mimo        # switch to Mimo (free)
+        relay use claude      # switch to Claude
+        relay use             # show current terminal
+        relay use --list      # show all terminals with strengths
+    """
+    from relayos.config import get_config_dir, load_config
+    import yaml
+
+    if list_flag:
+        from relayos.terminals.scheduler import format_terminal_help
+        click.echo(format_terminal_help())
+        return
+
+    config_dir = get_config_dir()
+    config_path = config_dir / "config.yaml"
+
+    if not terminal_name:
+        # Show current
+        cfg = load_config()
+        current = getattr(cfg, "routing", None)
+        default = getattr(current, "default", "balanced") if current else "balanced"
+        click.echo(f"Current terminal: {default}")
+        click.echo("Switch: relay use <opencode|mimo|claude|free|balanced|quality>")
+        return
+
+    valid_terminals = ("opencode", "mimo", "claude", "codex", "qcode")
+    valid_profiles = ("free", "balanced", "quality")
+
+    if terminal_name in valid_profiles:
+        # It's a profile name
+        if config_path.exists():
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            cfg.setdefault("routing", {})["default"] = terminal_name
+            config_path.write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True), encoding="utf-8")
+        click.echo(f"[OK] Switched to profile: {terminal_name}")
+        return
+
+    if terminal_name in valid_terminals:
+        if config_path.exists():
+            cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            cfg.setdefault("routing", {})["default"] = terminal_name
+            config_path.write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True), encoding="utf-8")
+        click.echo(f"[OK] Switched to terminal: {terminal_name}")
+        return
+
+    click.echo(f"[ERR] Unknown terminal/profile: {terminal_name}")
+    click.echo("Try: opencode, mimo, claude, free, balanced, quality")
 
 
 @cli.command()

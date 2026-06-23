@@ -198,10 +198,11 @@ def _render_tips() -> Panel:
     """Quick tips."""
     tips = Text()
     tips.append("\n").append(" Quick commands:", style="bold cyan")
+    tips.append("\n").append("  relay use opencode", style="dim")
+    tips.append("\n").append("  relay use mimo", style="dim")
+    tips.append("\n").append("  relay use claude", style="dim")
     tips.append("\n").append("  relay focus <name>", style="dim")
-    tips.append("\n").append("  relay team create startup", style="dim")
     tips.append("\n").append("  relay run workflow.yaml", style="dim")
-    tips.append("\n").append("  relay inbox list <name>", style="dim")
     tips.append("\n").append("  relayos serve (web UI)", style="dim")
     tips.append("\n").append("\n [q] quit | auto-refresh 2s", style="italic dim")
     return Panel(tips, title="[bold]Commands[/bold]", border_style="dim")
@@ -226,14 +227,14 @@ def _render_footer(wm: WorkerManager) -> Panel:
     except Exception:
         text.append("Inbox: -", style="dim")
     text.append("  |  ", style="dim")
-    # Profile
+    # Profile / terminal
     try:
         from relayos.config import load_config
         cfg = load_config()
-        p = cfg.routing.default if hasattr(cfg, 'routing') and cfg.routing else "balanced"
-        text.append(f"Profile: {p}", style="cyan")
+        current = cfg.routing.default if hasattr(cfg, 'routing') and cfg.routing else "balanced"
+        text.append(f"Use: {current}", style="cyan")
     except Exception:
-        text.append("Profile: -", style="dim")
+        text.append("Use: -", style="dim")
     text.append("  |  ", style="dim")
     # Total cost
     try:
