@@ -15,9 +15,10 @@
 
 ## v0.2.0 — "Beta" (Week 2)
 
-**Goal**: Web UI + cost-aware routing.
+**Goal**: Web Dashboard + real-time visualization.
 
-- [ ] Web Dashboard (Next.js): view workflow runs, agent status
+- [ ] Web Dashboard (FastAPI + served SPA): terminal management, workflow runs, memory browser
+- [ ] Real-time SSE streaming for workflow execution
 - [ ] Cost Manager: free-first routing policy
 - [ ] Docker Compose: one-command deploy
 - [ ] 10+ example workflows included

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RelayOS Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo"><span>Relay</span>OS</div>
+    <button class="nav-item active" data-page="dashboard">📊 Dashboard</button>
+    <button class="nav-item" data-page="terminals">💻 Terminals</button>
+    <button class="nav-item" data-page="workflows">🔄 Workflows</button>
+    <button class="nav-item" data-page="memory">🧠 Memory</button>
+    <div style="flex:1"></div>
+    <div class="nav-item" style="font-size:11px;color:var(--text-dim);cursor:default">
+      v<span id="version">...</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Dashboard Page -->
+    <div class="page active" id="page-dashboard">
+      <h1>📊 Dashboard</h1>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="value" id="stat-terminals">-</div><div class="label">Terminals</div></div>
+        <div class="stat-card"><div class="value" id="stat-idle">-</div><div class="label">Idle</div></div>
+        <div class="stat-card"><div class="value" id="stat-busy">-</div><div class="label">Busy</div></div>
+        <div class="stat-card"><div class="value" id="stat-adapters">-</div><div class="label">Adapters</div></div>
+        <div class="stat-card"><div class="value" id="stat-memory">-</div><div class="label">Memory Keys</div></div>
+      </div>
+
+      <h2>Available Terminal Types</h2>
+      <div class="card"><table><thead><tr><th>Type</th><th>Binary</th><th>Default Model</th><th>Status</th></tr></thead>
+        <tbody id="terminal-types-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Terminals Page -->
+    <div class="page" id="page-terminals">
+      <div class="card-header"><h1>💻 Terminals</h1>
+        <button class="btn btn-primary btn-sm" onclick="showCreateTerminal()">+ New Terminal</button>
+      </div>
+
+      <div id="create-terminal-form" style="display:none" class="card">
+        <h2>Create Terminal</h2>
+        <div class="form-row">
+          <select id="term-type"></select>
+          <input id="term-name" placeholder="Name (optional)">
+          <input id="term-model" placeholder="Model (optional)">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="createTerminal()">Create</button>
+        <button class="btn btn-sm" onclick="hideCreateTerminal()">Cancel</button>
+      </div>
+
+      <div class="card"><table><thead><tr><th>Name</th><th>Type</th><th>Model</th><th>Status</th><th>Tasks</th><th>Actions</th></tr></thead>
+        <tbody id="terminals-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Workflows Page -->
+    <div class="page" id="page-workflows">
+      <h1>🔄 Run Workflow</h1>
+      <div class="card">
+        <div class="form-row">
+          <button class="btn btn-primary btn-sm" onclick="runExample1()">📋 SaaS Builder</button>
+          <button class="btn btn-sm" onclick="runExample2()">📋 Debate</button>
+          <button class="btn btn-sm" onclick="runExample3()">📋 Parallel Research</button>
+        </div>
+        <textarea id="workflow-yaml" rows="10" style="font-family:monospace;font-size:12px;margin-bottom:8px"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="runWorkflow()">▶ Run Workflow</button>
+      </div>
+      <div class="card" id="workflow-output-card" style="display:none">
+        <div class="card-header"><h2>Output</h2><span id="workflow-status" style="font-size:12px;color:var(--text-dim)"></span></div>
+        <div class="workflow-log" id="workflow-log"></div>
+      </div>
+    </div>
+
+    <!-- Memory Page -->
+    <div class="page" id="page-memory">
+      <div class="card-header"><h1>🧠 Shared Memory</h1>
+        <button class="btn btn-sm" onclick="loadMemory()">🔄 Refresh</button>
+      </div>
+      <div id="memory-list"></div>
+      <div class="card" id="memory-detail" style="display:none">
+        <h2 id="memory-detail-key"></h2>
+        <pre id="memory-detail-value" style="background:var(--bg);padding:12px;border-radius:var(--radius);margin-top:8px;font-size:12px;overflow-x:auto"></pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Navigation ─────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + el.dataset.page).classList.add('active');
+    if (el.dataset.page === 'dashboard') refreshDashboard();
+    if (el.dataset.page === 'terminals') refreshTerminals();
+    if (el.dataset.page === 'memory') loadMemory();
+  });
+});
+
+// ── API helpers ────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+async function refreshDashboard() {
+  try {
+    const status = await api('/api/status');
+    document.getElementById('version').textContent = status.version;
+    document.getElementById('stat-terminals').textContent = status.terminals.total || 0;
+    document.getElementById('stat-idle').textContent = status.terminals.idle || 0;
+    document.getElementById('stat-busy').textContent = status.terminals.busy || 0;
+    document.getElementById('stat-adapters').textContent = status.adapters.length;
+    document.getElementById('stat-memory').textContent = status.memory_keys;
+
+    const typesBody = document.getElementById('terminal-types-tbody');
+    typesBody.innerHTML = status.terminal_types.map(t =>
+      `<tr><td>${t.type}</td><td>${t.type}</td><td>${t.type}</td><td><span class="badge ${t.available ? 'badge-idle' : 'badge-error'}">${t.available ? '✅ Installed' : '❌ Not Found'}</span></td></tr>`
+    ).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ── Terminals ──────────────────────────────────────────────
+async function refreshTerminals() {
+  try {
+    const terms = await api('/api/terminals');
+    const tbody = document.getElementById('terminals-tbody');
+    if (terms.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No terminals. Create one to get started.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = terms.map(t =>
+      `<tr>
+        <td><strong>${t.name}</strong></td>
+        <td>${t.type}</td>
+        <td style="font-size:12px;color:var(--text-dim)">${t.model}</td>
+        <td><span class="badge badge-${t.status}">${t.status}</span></td>
+        <td>${t.task_count || 0}</td>
+        <td>
+          <button class="btn btn-sm" onclick="runPrompt('${t.id}')">▶ Run</button>
+          <button class="btn btn-sm btn-danger" onclick="removeTerminal('${t.id}')">✕</button>
+        </td>
+      </tr>`
+    ).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function showCreateTerminal() {
+  document.getElementById('create-terminal-form').style.display = 'block';
+  try {
+    const status = await api('/api/status');
+    const sel = document.getElementById('term-type');
+    sel.innerHTML = status.terminal_types.map(t =>
+      `<option value="${t.type}">${t.type} ${t.available ? '✅' : '❌'}</option>`
+    ).join('');
+  } catch(e) { console.error(e); }
+}
+function hideCreateTerminal() { document.getElementById('create-terminal-form').style.display = 'none'; }
+
+async function createTerminal() {
+  const type = document.getElementById('term-type').value;
+  const name = document.getElementById('term-name').value || null;
+  const model = document.getElementById('term-model').value || null;
+  await api('/api/terminals', {
+    method: 'POST',
+    body: JSON.stringify({ type_name: type, name, model }),
+  });
+  document.getElementById('term-name').value = '';
+  document.getElementById('term-model').value = '';
+  hideCreateTerminal();
+  refreshTerminals();
+}
+
+async function removeTerminal(id) {
+  if (!confirm('Remove terminal ' + id + '?')) return;
+  await api('/api/terminals/' + id, { method: 'DELETE' });
+  refreshTerminals();
+}
+
+async function runPrompt(id) {
+  const prompt = prompt('Enter prompt for ' + id + ':');
+  if (!prompt) return;
+  const result = await api('/api/terminals/' + id + '/run', {
+    method: 'POST',
+    body: JSON.stringify({ prompt }),
+  });
+  alert('Done: ' + (result.content ? result.content.substring(0, 200) + '...' : result.error));
+}
+
+// ── Workflows ──────────────────────────────────────────────
+function runExample1() {
+  document.getElementById('workflow-yaml').value = `name: "SaaS Competitor Analysis"
+steps:
+  - agent: google
+    prompt: "Research top 5 AI note-taking SaaS competitors"
+    save_as: research
+  - agent: anthropic
+    prompt: "Design architecture based on: {{research}}"
+    save_as: architecture
+  - agent: openai
+    prompt: "Implement core API from: {{architecture}}"
+    save_as: code
+  - agent: deepseek
+    prompt: "Review code for security: {{code}}"
+    save_as: review`;
+}
+function runExample2() {
+  document.getElementById('workflow-yaml').value = `name: "Local vs Cloud LLM Debate"
+steps:
+  - agent: anthropic
+    system: "Argue FOR local LLMs"
+    prompt: "Why deploy local LLMs for enterprise?"
+    save_as: position_a
+  - agent: openai
+    system: "Argue FOR cloud LLMs"
+    prompt: "Why use cloud LLM APIs?"
+    save_as: position_b
+  - agent: google
+    prompt: "Synthesize: {{position_a}}\n\n{{position_b}}"
+    save_as: conclusion`;
+}
+function runExample3() {
+  document.getElementById('workflow-yaml').value = `name: "Parallel Research Sprint"
+steps:
+  - agent: google
+    prompt: "Research MCP protocol 2026 ecosystem"
+    save_as: mcp
+    parallel: true
+  - agent: openai
+    prompt: "Analyze open-source multi-agent tools"
+    save_as: oss
+    parallel: true
+  - agent: anthropic
+    prompt: "Design multi-CLI coordination architecture"
+    save_as: design
+    parallel: true
+  - agent: openai
+    prompt: "Synthesize:\nMCP: {{mcp}}\nOSS: {{oss}}\nDesign: {{design}}"
+    save_as: synthesis`;
+}
+
+async function runWorkflow() {
+  const yaml = document.getElementById('workflow-yaml').value;
+  if (!yaml.trim()) return alert('Enter a workflow YAML');
+  const log = document.getElementById('workflow-log');
+  log.innerHTML = '';
+  document.getElementById('workflow-output-card').style.display = 'block';
+  document.getElementById('workflow-status').textContent = 'Running...';
+
+  const evtSource = new EventSource('/api/workflows/run?' + Math.random());
+  // We use fetch with POST for the workflow YAML
+  const response = await fetch('/api/workflows/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ yaml_content: yaml }),
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const evt = JSON.parse(line.substring(6));
+        if (evt.type === 'step_start') {
+          log.innerHTML += `<div class="step running"><span class="spinner">⠋</span> [${evt.agent}] ${evt.prompt}</div>`;
+        } else if (evt.type === 'step_done') {
+          const last = log.lastElementChild;
+          if (last) last.className = 'step done';
+          log.innerHTML += `<div class="step done">  ✅ [${evt.agent}] ${evt.model} (${(evt.duration_ms/1000).toFixed(1)}s, ${evt.chars}c)</div>`;
+        } else if (evt.type === 'step_error') {
+          const last = log.lastElementChild;
+          if (last) last.className = 'step error';
+          log.innerHTML += `<div class="step error">  ❌ [${evt.agent}] ${evt.error}</div>`;
+        } else if (evt.type === 'complete') {
+          document.getElementById('workflow-status').textContent = `✅ Complete — ${evt.steps} steps`;
+        }
+        log.scrollTop = log.scrollHeight;
+      } catch(e) {}
+    }
+  }
+}
+
+// ── Memory ─────────────────────────────────────────────────
+async function loadMemory() {
+  try {
+    const items = await api('/api/memory');
+    const list = document.getElementById('memory-list');
+    if (items.length === 0) {
+      list.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-dim)">No memory keys.</p></div>';
+      return;
+    }
+    list.innerHTML = items.map(item =>
+      `<div class="card memory-item" onclick="showMemory('${item.key}')">
+        <div class="key">🔑 ${item.key}</div>
+        <div class="preview">${item.preview || '(empty)'}</div>
+      </div>`
+    ).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function showMemory(key) {
+  try {
+    const data = await api('/api/memory/' + encodeURIComponent(key));
+    document.getElementById('memory-detail').style.display = 'block';
+    document.getElementById('memory-detail-key').textContent = '🔑 ' + data.key;
+    document.getElementById('memory-detail-value').textContent = data.value;
+  } catch(e) { console.error(e); }
+}
+
+// ── Init ───────────────────────────────────────────────────
+refreshDashboard();
+</script>
+</body>
+</html>

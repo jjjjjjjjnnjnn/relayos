@@ -395,3 +395,27 @@ def terminal_exec(type_name: str, prompt: tuple[str], model: str | None, config:
     else:
         click.echo(result.content)
     click.echo(f"\n[Duration: {result.duration_ms}ms | Model: {result.model}]")
+
+
+# ─── Server ─────────────────────────────────────────────────
+
+
+@cli.command()
+@click.option("--host", default="127.0.0.1", help="Bind address")
+@click.option("--port", default=8080, type=int, help="Port")
+@click.option("--open", "open_browser", is_flag=True, help="Open browser")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def serve(host: str, port: int, open_browser: bool, config: str | None):
+    """Start the web dashboard."""
+    import webbrowser
+    import uvicorn
+
+    from relayos.server.api import create_app
+    app = create_app(config)
+
+    url = f"http://{host}:{port}"
+    click.echo(f"RelayOS Dashboard: {url}")
+    if open_browser:
+        webbrowser.open(url)
+
+    uvicorn.run(app, host=host, port=port, log_level="info")
