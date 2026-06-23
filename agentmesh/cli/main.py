@@ -212,12 +212,168 @@ providers:
     model: qwen2.5:7b
     base_url: http://localhost:11434
 
+# Terminal instances (can have multiple of the same type)
+# Each terminal wraps an AI CLI tool with its own model config.
+terminals:
+  - name: claude-main
+    type: claude
+    model: claude-sonnet-4-20250514
+
+  - name: claude-fast
+    type: claude
+    model: claude-haiku-4-20251001
+
+  - name: mimo-coder
+    type: mimo
+    model: gpt-4o
+
+  - name: opencode-data
+    type: opencode
+    model: deepseek-chat
+
 routing:
   default: balanced
   policies:
     coding: free_first
     research: quality_first
     quick: cheapest
+
+mcp_servers: {}
 """)
     click.echo(f"[OK] Created {config_path}")
     click.echo("  Edit it to add your API keys, then run: agentmesh run <workflow.yaml>")
+
+
+# ─── Terminal Management ─────────────────────────────────────────
+
+
+@cli.group()
+def terminal():
+    """Manage terminal instances -- spawn, list, run on AI CLI terminals."""
+    pass
+
+
+@terminal.command("types")
+def terminal_types():
+    """List all available terminal types and their installation status."""
+    from agentmesh.terminals import list_terminal_types
+
+    click.echo("Available terminal types:")
+    click.echo(f"{'Type':<15} {'Binary':<15} {'Default Model':<30} {'Installed'}")
+    click.echo("-" * 80)
+    for t in list_terminal_types():
+        status = "[OK]" if t["available"] else "[ERR]"
+        click.echo(f"{t['type']:<15} {t['binary']:<15} {t['default_model']:<30} {status}")
+
+
+@terminal.command("create")
+@click.argument("type_name")
+@click.option("-n", "--name", help="Friendly name for this terminal")
+@click.option("-m", "--model", help="Model selection for this terminal")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_create(type_name: str, name: str | None, model: str | None, config: str | None):
+    """Create a new terminal instance.
+
+    TYPE_NAME is one of: claude, mimo, opencode, codex, qcode, custom
+    """
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    inst = pool.create(type_name=type_name, name=name, model=model)
+    click.echo(f"[OK] Created terminal '{inst.name}' ({inst.id})")
+    click.echo(f"  Type:  {inst.type}")
+    click.echo(f"  Model: {inst.model}")
+    click.echo(f"  Status: {inst.status}")
+
+
+@terminal.command("list")
+@click.option("-t", "--type", "type_filter", help="Filter by terminal type")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_list(type_filter: str | None, config: str | None):
+    """List all running terminal instances."""
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    instances = pool.list(type_filter=type_filter)
+
+    if not instances:
+        click.echo("No terminals. Create one: agentmesh terminal create claude")
+        return
+
+    h = f"{'ID':<20} {'Name':<20} {'Type':<12} {'Model':<30} {'Status':<10} {'Tasks':<8}"
+    click.echo(h)
+    click.echo("-" * len(h))
+    for t in instances:
+        click.echo(f"{t.id:<20} {t.name:<20} {t.type:<12} {t.model:<30} {t.status:<10} {t.task_count:<8}")
+
+
+@terminal.command("run")
+@click.argument("terminal_id")
+@click.argument("prompt", nargs=-1, required=True)
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_run(terminal_id: str, prompt: tuple[str], config: str | None):
+    """Run a prompt on a specific terminal."""
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    full_prompt = " ".join(prompt)
+    click.echo(f"Running on '{terminal_id}'...")
+    result = pool.run(terminal_id, full_prompt)
+    if result.error:
+        click.echo(f"[ERR] {result.error}", err=True)
+    else:
+        click.echo(result.content)
+    click.echo(f"\n[Duration: {result.duration_ms}ms | Exit: {result.exit_code}]")
+
+
+@terminal.command("remove")
+@click.argument("terminal_id")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_remove(terminal_id: str, config: str | None):
+    """Remove a terminal instance."""
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    if pool.remove(terminal_id):
+        click.echo(f"[OK] Removed terminal '{terminal_id}'")
+    else:
+        click.echo(f"[ERR] Terminal '{terminal_id}' not found", err=True)
+        sys.exit(1)
+
+
+@terminal.command("stats")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_stats(config: str | None):
+    """Show terminal pool statistics."""
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    s = pool.stats()
+    click.echo("Terminal Pool Statistics:")
+    click.echo(f"  Total:        {s['total']}")
+    click.echo(f"  Idle:         {s['idle']}")
+    click.echo(f"  Busy:         {s['busy']}")
+    click.echo(f"  Error:        {s['error']}")
+    click.echo(f"  Total Tasks:  {s['total_tasks']}")
+    click.echo(f"  Est. Tokens:  {s['total_tokens_estimated']}")
+    click.echo(f"  By Type:      {s['by_type']}")
+
+
+@terminal.command("exec")
+@click.argument("type_name")
+@click.argument("prompt", nargs=-1, required=True)
+@click.option("-m", "--model", help="Model override")
+@click.option("-c", "--config", type=click.Path(), help="Config file path")
+def terminal_exec(type_name: str, prompt: tuple[str], model: str | None, config: str | None):
+    """Run on first available terminal of given type (auto-create if needed)."""
+    from agentmesh.orchestrator.pool import TerminalPool
+
+    pool = TerminalPool(config)
+    full_prompt = " ".join(prompt)
+    click.echo(f"Dispatching to {type_name}...")
+    result = pool.run_on_type(type_name, full_prompt)
+    if result.error:
+        click.echo(f"[ERR] {result.error}", err=True)
+    else:
+        click.echo(result.content)
+    click.echo(f"\n[Duration: {result.duration_ms}ms | Model: {result.model}]")
