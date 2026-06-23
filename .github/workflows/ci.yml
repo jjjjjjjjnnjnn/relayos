@@ -24,6 +24,6 @@ jobs:
           pip install -e .
           pip install pytest pytest-httpx
       - name: Test
-        run: python -m pytest tests/ -v --tb=short 2>/dev/null || echo "No tests yet"
+        run: python -m pytest tests/ -v --tb=short 2>&1 || echo "No tests yet"
       - name: Import check
-        run: python -c "from agentbridge import __version__; print(f'AgentBridge {__version__}')"
+        run: python -c "from relayos import __version__; print(f'RelayOS {__version__}')"
