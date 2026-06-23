@@ -558,6 +558,16 @@ def team_list():
         click.echo(f"  {t['name']:<15} {t['worker_count']} workers — {t['description']}")
 
 
+# ─── Register extension command groups ──────────────────────
+
+try:
+    from relayos.cli.config_commands import config as config_grp, plugin as plugin_grp
+    cli.add_command(config_grp)
+    cli.add_command(plugin_grp)
+except ImportError:
+    pass  # config_commands not available
+
+
 @cli.command()
 @click.option("--host", default="127.0.0.1", help="Bind address")
 @click.option("--port", default=8080, type=int, help="Port")
