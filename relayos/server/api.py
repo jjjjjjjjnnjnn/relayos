@@ -206,6 +206,47 @@ def create_app(config_path: Optional[str] = None) -> FastAPI:
     async def get_cost_report():
         return cost_mgr.get_report()
 
+    # ── Router ───────────────────────────────────────────────────
+
+    from relayos.core.router import FlowRouter
+    flow_router = FlowRouter()
+
+    @app.post("/api/router/analyze")
+    async def analyze_route(data: dict):
+        prompt = data.get("prompt", "")
+        policy = data.get("policy", "balanced")
+        decision = flow_router.route(prompt, policy=policy)
+        return {
+            "provider": decision.provider,
+            "task_type": decision.task_type,
+            "confidence": decision.confidence,
+            "reason": decision.reason,
+            "estimated_tokens": decision.estimated_tokens,
+        }
+
+    # ── Inbox ────────────────────────────────────────────────────
+
+    from relayos.core.inbox import WorkerInbox
+    inbox_mgr = WorkerInbox()
+
+    @app.post("/api/inbox/send")
+    async def inbox_send(data: dict):
+        mid = inbox_mgr.send(
+            to=data["to"],
+            body=data["body"],
+            subject=data.get("subject", ""),
+            from_worker=data.get("from_worker", "system"),
+        )
+        return {"message_id": mid}
+
+    @app.get("/api/inbox/{worker}")
+    async def inbox_list(worker: str):
+        return {"messages": inbox_mgr.list_inbox(worker), "unread": inbox_mgr.count_unread(worker)}
+
+    @app.get("/api/inbox/stats")
+    async def inbox_stats():
+        return inbox_mgr.get_stats()
+
     # ── Frontend ────────────────────────────────────────────────
 
     static_dir = Path(__file__).parent / "static"

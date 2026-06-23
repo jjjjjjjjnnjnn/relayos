@@ -429,6 +429,85 @@ def cost_track(provider: str, model: str, in_tokens: int, out_tokens: int, db: s
     click.echo(f"[OK] Recorded {provider}/{model}: {in_tokens} in / {out_tokens} out")
 
 
+# ─── Flow Router ────────────────────────────────────────────
+
+
+@cli.group()
+def route():
+    """Analyze and route prompts to optimal providers."""
+    pass
+
+
+@route.command("analyze")
+@click.argument("prompt", nargs=-1, required=True)
+@click.option("-p", "--policy", default="balanced", help="Routing policy: balanced, cheapest, quality, free_first")
+def route_analyze(prompt: tuple[str], policy: str):
+    """Show which provider a prompt would be routed to."""
+    from relayos.core.router import FlowRouter
+    router = FlowRouter()
+    full = " ".join(prompt)
+    decision = router.route(full, policy=policy)
+    click.echo(f"Task type:    {decision.task_type}")
+    click.echo(f"Provider:     {decision.provider}")
+    click.echo(f"Confidence:   {decision.confidence:.0%}")
+    click.echo(f"Reason:       {decision.reason}")
+    click.echo(f"Est. tokens:  {decision.estimated_tokens}")
+
+
+# ─── Worker Inbox ───────────────────────────────────────────
+
+
+@cli.group()
+def inbox():
+    """Worker inbox — send and receive messages between agents."""
+    pass
+
+
+@inbox.command("send")
+@click.argument("to")
+@click.argument("body", nargs=-1, required=True)
+@click.option("-s", "--subject", default="", help="Message subject")
+@click.option("-f", "--from-worker", default="cli", help="Sender")
+def inbox_send(to: str, body: tuple[str], subject: str, from_worker: str):
+    """Send a message to a worker."""
+    from relayos.core.inbox import WorkerInbox
+    inbox_mgr = WorkerInbox()
+    mid = inbox_mgr.send(to=to, body=" ".join(body), subject=subject, from_worker=from_worker)
+    click.echo(f"[OK] Sent message #{mid} to '{to}'")
+
+
+@inbox.command("list")
+@click.argument("worker")
+@click.option("--all", "show_all", is_flag=True, help="Show all messages (not just unread)")
+def inbox_list(worker: str, show_all: bool):
+    """List inbox messages for a worker."""
+    from relayos.core.inbox import WorkerInbox
+    inbox_mgr = WorkerInbox()
+    msgs = inbox_mgr.list_inbox(worker, unread_only=not show_all)
+    if not msgs:
+        click.echo(f"Inbox for '{worker}' is empty.")
+        return
+    for m in msgs:
+        status = "📩" if m["status"] == "unread" else "📖"
+        preview = m["body"][:80] + "..." if len(m["body"]) > 80 else m["body"]
+        click.echo(f"  #{m['id']} {status} from:{m['from_worker']} | {m['subject'] or 'no subject'}")
+        click.echo(f"      {preview}")
+
+    unread = sum(1 for m in msgs if m["status"] == "unread")
+    click.echo(f"\n[{len(msgs)} messages, {unread} unread]")
+
+
+@inbox.command("stats")
+def inbox_stats():
+    """Show inbox statistics."""
+    from relayos.core.inbox import WorkerInbox
+    inbox_mgr = WorkerInbox()
+    s = inbox_mgr.get_stats()
+    click.echo(f"Total messages:  {s['total']}")
+    click.echo(f"Unread:          {s['unread']}")
+    click.echo(f"Per worker:      {s['per_worker']}")
+
+
 @cli.command()
 @click.option("--host", default="127.0.0.1", help="Bind address")
 @click.option("--port", default=8080, type=int, help="Port")
