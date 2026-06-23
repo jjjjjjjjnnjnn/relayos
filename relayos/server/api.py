@@ -194,7 +194,7 @@ def create_app(config_path: Optional[str] = None) -> FastAPI:
 
     @app.delete("/api/memory/{key}")
     async def delete_memory(key: str):
-        memory.set(key, None)
+        memory._conn.execute("DELETE FROM memory WHERE key = ?", (key,)); memory._conn.commit()
         return {"ok": True}
 
     # ── Cost ────────────────────────────────────────────────────

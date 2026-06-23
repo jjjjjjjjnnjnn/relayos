@@ -48,7 +48,7 @@
 
 ## 🎯 Overview
 
-**RelayOS** is an open-source coordination layer for AI agents — like Docker for containers, but for AI tools.
+**RelayOS** is a terminal-native AI workforce manager — like tmux for your AI agents. Spawn persistent workers (architect, researcher, coder) that stay alive across sessions, keep project context, and collaborate through a shared inbox. All from your terminal, zero infrastructure required.
 
 ### The Problem
 
@@ -116,22 +116,27 @@ You use **Claude Code** for architecture, **ChatGPT** for reasoning, **Gemini** 
 pip install relayos
 ```
 
-### Initialize
+### Start
 
 ```bash
-relayos init
+relay
 ```
 
-Configure your API keys via environment variables:
+That's it. Opens the TUI — like htop for your AI team. No Docker, no server, no browser.
+
+### Create Your First Worker
 
 ```bash
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GEMINI_API_KEY="..."
-export DEEPSEEK_API_KEY="sk-..."
+# Create persistent AI workers
+relay worker create architect
+relay worker create researcher
+relay worker create reviewer
+
+# See your team
+relay workers
 ```
 
-### Run Your First Workflow
+### Run a Workflow
 
 Create a file `hello.yaml`:
 
@@ -151,29 +156,13 @@ steps:
 Execute it:
 
 ```bash
-relayos run hello.yaml
+relay run hello.yaml
 ```
 
-### Manage Terminals
+### Optional: Web Dashboard
 
 ```bash
-# See what terminals are available
-relayos terminal types
-
-# Create one Claude Code terminal for architecture
-relayos terminal create claude -n architect -m claude-sonnet-4-20250514
-
-# And another for quick tasks
-relayos terminal create claude -n assistant -m claude-haiku-4-20251001
-
-# Create a Gemini terminal for research
-relayos terminal create google -n researcher -m gemini-2.5-flash
-
-# See all running terminals
-relayos terminal list
-
-# Run a prompt on a specific terminal
-relayos terminal exec opencode "Analyze this data"
+relayos serve --open   # optional, requires browser
 ```
 
 ---
@@ -399,6 +388,6 @@ RelayOS README is available in:
 ---
 
 <p align="center">
-  <strong>RelayOS</strong> — The coordination layer for AI agents.<br>
-  <sub>Built with ❤️ for the open-source AI community</sub>
+  <strong>RelayOS</strong> — Persistent AI Workers for Developers.<br>
+  <sub>Like htop for your AI team. No Docker, no server, no browser needed.</sub>
 </p>

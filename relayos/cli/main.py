@@ -18,7 +18,7 @@ from relayos.workflow.models import Workflow, validate_workflow
 @click.group()
 @click.version_option(version=__version__, message="RelayOS v%(version)s")
 def cli():
-    """RelayOS — Multi-agent orchestration for AI tools.
+    """RelayOS — Persistent AI Workers for Developers. Like htop for your AI team..
 
     Run workflows across Claude, GPT, Gemini and local models
     with shared memory and MCP tool integration.

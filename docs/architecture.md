@@ -1,97 +1,116 @@
 # RelayOS Architecture
 
-## Current (v0.1 — Alpha)
+## Current (v0.3 — "Workforce")
 
 ```
-User
+Terminal (relay)
  │
- ▼
-relayos run workflow.yaml
+ ├─ TUI (Rich-based dashboard)
+ │    ├─ Workers view  (htop-style)
+ │    ├─ Inbox view    (messages)
+ │    └─ Commands      (run, create, send)
  │
- ▼
-┌─────────────────────────────────────┐
-│         RelayOS Runtime            │
-│                                      │
-│  ┌──────────┐  ┌───────────────┐    │
-│  │ Workflow  │─▶│ Agent Adapter │    │
-│  │ Engine    │  │ Layer         │    │
-│  │ (YAML)    │  │               │    │
-│  └──────────┘  │ OpenAI        │    │
-│       │        │ Claude        │    │
-│       ▼        │ Gemini        │    │
-│  ┌──────────┐  │ Ollama        │    │
-│  │  Memory  │  │ DeepSeek      │    │
-│  │  Layer   │  └───────┬───────┘    │
-│  │ (SQLite) │          │           │
-│  └──────────┘          ▼           │
-│                   ┌──────────┐     │
-│                   │MCP Client│     │
-│                   └──────────┘     │
-└─────────────────────────────────────┘
-```
-
-## Planned (v1.0)
-
-```
-Claude Code / Cursor / ChatGPT / Any MCP Client
- │                    │                     │
- └────────────────────┼─────────────────────┘
-                      │
-                      ▼
-┌────────────────────────────────────────────┐
-│           RelayOS Gateway                 │
-│         (MCP Server + REST API)             │
-└──────────────────┬─────────────────────────┘
-                   │
-                   ▼
-┌────────────────────────────────────────────┐
-│           RelayOS Runtime                  │
-│                                              │
-│  ┌──────────────┐  ┌────────────────────┐   │
-│  │ Routing      │  │ Cost Manager       │   │
-│  │ Engine       │  │ (free-first policy)│   │
-│  │ (LangGraph)  │  └────────────────────┘   │
-│  └──────┬───────┘                            │
-│         │                                    │
-│  ┌──────▼────────────────────────────────┐   │
-│  │         Agent Adapter Layer            │   │
-│  │  OpenAI │ Claude │ Gemini │ DeepSeek  │   │
-│  │  Ollama │ ...    │ (pluggable)        │   │
-│  └──────┬───────────────────────────────┘   │
-│         │                                    │
-│  ┌──────▼──────────┐  ┌─────────────────┐   │
-│  │  Shared Memory   │  │ MCP Hub          │   │
-│  │ (Vector + SQLite)│  │ (Server + Client) │   │
-│  └─────────────────┘  └─────────────────┘   │
+ └─ CLI (relay/relayos commands)
+      │
+      ▼
+┌──────────────────────────────────────────────┐
+│              RelayOS Runtime                   │
+│                                                │
+│  ┌────────────────┐  ┌──────────────────┐    │
+│  │  Worker Manager │  │  Worker Inbox    │    │
+│  │  (persistent)   │  │  (SQLite msgs)   │    │
+│  └───────┬────────┘  └──────────────────┘    │
+│          │                                     │
+│  ┌───────▼────────────────────────────────┐   │
+│  │       Agent Adapter Layer               │   │
+│  │  OpenAI │ Anthropic │ Google │ DeepSeek │   │
+│  │  Ollama │ (5 providers, httpx-based)    │   │
+│  └───────┬────────────────────────────────┘   │
+│          │                                     │
+│  ┌───────▼────────┐  ┌──────────────────┐    │
+│  │  Flow Router   │  │ Context Compress  │    │
+│  │ (smart routing)│  │ (70-90% savings)  │    │
+│  ├────────────────┤  ├──────────────────┤    │
+│  │  Cost Manager  │  │  Shared Memory   │    │
+│  │ (token tracking)│  │  (SQLite)        │    │
+│  └────────────────┘  └──────────────────┘    │
 └──────────────────────────────────────────────┘
+         │
+         ▼
+    ┌──────────┐  ┌──────────┐  ┌──────────┐
+    │  OpenAI  │  │ Claude   │  │ Gemini   │
+    │  GPT-4o  │  │ Sonnet   │  │ 2.5 Flash│
+    └──────────┘  └──────────┘  └──────────┘
+    ┌──────────┐  ┌──────────┐
+    │ DeepSeek │  │ Ollama   │
+    │  V3/R1   │  │ (Local)  │
+    └──────────┘  └──────────┘
 ```
 
 ## Key Design Decisions
 
-### 1. YAML-first workflow (v0.1)
+### 1. Terminal-native (primary interface)
 
-Workflows defined as YAML, not code. Enables non-developers to create multi-agent pipelines without writing Python.
+`relay` command opens a Rich-based TUI (like htop/lazygit style). No browser needed for core usage. Web UI is optional via `relayos serve`.
 
-### 2. Dict + SQLite memory (v0.1)
+### 2. Workers as the core primitive
 
-Vector search is overkill for v0.1. Simple key-value with SQLite persistence covers 80% of use cases.
+Workers are persistent AI team members. Each has:
+- A name and role (architect, researcher, coder)
+- A provider + model assignment
+- Persistent memory (project context)
+- An inbox (inter-worker messaging)
+- Lifecycle across sessions (SQLite-backed)
 
-### 3. Plug-in Architecture
+### 3. Zero infrastructure
 
-Each agent adapter is a standalone Python class registered via entry_points. Adding a new provider requires zero changes to core.
+Single process, local SQLite, no external dependencies. `pip install relayos && relay` is all you need.
 
-### 4. MCP Consumer (v0.1) → Hub (v1.0)
+### 4. Smart routing
 
-Start by consuming MCP servers for tools. Graduate to exposing RelayOS as an MCP server. Finally become a full bidirectional hub.
+Flow Router analyzes prompt content and routes to the optimal provider:
+- Architecture → Claude
+- Research → Gemini (free tier)
+- Coding → GPT-4o
+- Review → DeepSeek (cheap)
+- Policy support: free_first, quality, cheapest
 
-## Data Flow
+### 5. Context compression
+
+Each step output is compressed before passing to the next agent, saving 70-90% on tokens. Strategies: summary, extract, truncate, structured.
+
+## Data Flow (Workflow Run)
 
 ```
-1. User runs: relayos run workflow.yaml
-2. Workflow Engine parses steps
-3. For each step, Agent Adapter calls the selected provider
-4. Memory layer stores/retrieves context automatically
-5. MCP Client provides tools if configured
-6. Results accumulate across steps
-7. Final output written to stdout/file
+1. User: relay run workflow.yaml
+2. Workflow Engine parses YAML steps
+3. For each step, Flow Router selects optimal provider
+4. Agent Adapter calls the provider API
+5. Result stored in Shared Memory (SQLite)
+6. Cost tracked in Cost Manager
+7. Before next step, Context Compression reduces output
+8. Next agent receives compressed context + new prompt
+9. All steps logged to TUI in real-time
+```
+
+## Optional: Web Dashboard
+
+```
+relayos serve --open
+  └── http://127.0.0.1:8080
+        ├── Workers panel (same info as TUI)
+        ├── Workflow runner with SSE streaming
+        └── Memory browser
+```
+
+## Storage
+
+All data in `~/.relayos/`:
+```
+~/.relayos/
+├── config.yaml     # User configuration
+├── memory.db       # Shared memory
+├── workers.db      # Worker definitions
+├── inbox.db        # Worker messages
+└── cost.db         # Usage tracking
 ```

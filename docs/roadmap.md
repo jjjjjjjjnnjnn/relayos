@@ -1,55 +1,58 @@
 # RelayOS Roadmap
 
-## v0.1.0 — "Alpha" (Week 1)
+## v0.3 — "Workforce" (Current)
 
-**Goal**: Usable CLI for multi-agent workflows with shared memory.
+**Goal**: Persistent AI workers with terminal-native UX.
 
-- [ ] Agent Adapters: OpenAI, Claude, Gemini, Ollama, DeepSeek
-- [ ] YAML Workflow Engine: sequential multi-step pipelines
-- [ ] Shared Memory: SQLite-based context passing between agents
-- [ ] MCP Client: consume external MCP servers for tools
-- [ ] CLI: `relayos run workflow.yaml`
+- [x] Worker Pool (8 default roles with emoji/description)
+- [x] Worker Inbox (inter-worker messaging, SQLite)
+- [x] Flow Router (task-type → optimal provider)
+- [x] Context Compression (70-90% token savings)
+- [x] Terminal UI (Rich-based, htop-style workers view)
+- [x] Cost Manager (per-provider token tracking)
+- [x] CLI relay command (opens TUI, zero infrastructure)
 
-**Size**: ~1000-1500 lines
-**Position**: "Stop copy-pasting between AI tools."
+**In progress:**
+- Worker persistence (survive restarts, saved to SQLite)
+- TUI tabs (workers, tasks, inbox, memory, logs)
+- relay worker CLI group (create/list/remove/exec)
+- Prompt Cache (duplicate task detection)
 
-## v0.2.0 — "Beta" (Week 2)
+## v0.4 — "Teams"
 
-**Goal**: Web Dashboard + real-time visualization.
+**Goal**: Team templates and workflow orchestration.
 
-- [ ] Web Dashboard (FastAPI + served SPA): terminal management, workflow runs, memory browser
-- [ ] Real-time SSE streaming for workflow execution
-- [ ] Cost Manager: free-first routing policy
-- [ ] Docker Compose: one-command deploy
-- [ ] 10+ example workflows included
-- [ ] LinguaGraph integration showcase
+- Worker-to-worker task handoff via inbox
+- Team config presets (startup, research, writing)
+- DAG workflow (non-linear, parallel execution)
+- Worker summary auto-compression (<500 tokens)
+- TUI focus command (SSH into a worker)
+- Shared workspace (project-level context)
 
-## v0.5.0 — "Flow" (Week 3)
+## v0.5 — "Mesh"
 
-**Goal**: Advanced orchestration.
+**Goal**: Tool routing and plugin system.
 
-- [ ] LangGraph-powered state machine
-- [ ] Conditional branching in workflows
-- [ ] Human-in-the-loop checkpoints
-- [ ] MCP Router: pass-through to connected agents
-- [ ] Streaming output (SSE)
+- MCP Tool Router (agent → relayos → tool)
+- Plugin system for custom worker types
+- Prompt fingerprint cache (hash-based dedup)
+- Embedding cache (semantic retrieval)
+- Workflow replay (like LangSmith timeline)
 
-## v1.0.0 — "Mesh" (Week 4+)
+## v1.0 — "Stable"
 
-**Goal**: Production-ready bidirectional MCP Hub.
+**Goal**: Production-ready AI workforce manager.
 
-- [ ] Bidirectional MCP Hub (Server + Client)
-- [ ] Plugin system for community adapters
-- [ ] Postgres upgrade path
-- [ ] Vector memory (Chroma/Qdrant)
-- [ ] Comprehensive testing
-- [ ] API stability
+- SDK for embedding workers in other tools
+- Multi-machine worker pool (SSH agents)
+- Event-sourced inbox with full history
+- Vector memory (local via sqlite-vss)
+- Plugin registry (community worker templates)
 
-## Non-Goals (Pre-v1.0)
+## Non-Goals
 
+- Web Dashboard as primary UI (TUI is primary; web is optional via `relayos serve`)
 - User auth / multi-tenant
-- Drag-and-drop workflow editor
-- Plugin marketplace
+- Kubernetes-scale clustering
+- Plugin marketplace (v2)
 - Mobile app
-- OpenTelemetry tracing
-- TypeScript SDK

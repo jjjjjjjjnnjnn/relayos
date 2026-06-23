@@ -63,7 +63,7 @@ def run_tui():
     key_thread = threading.Thread(target=check_keys, daemon=True)
     key_thread.start()
 
-    with Live(auto_refresh=False, screen=True) as live:
+    with Live(refresh_per_second=4, screen=True) as live:
         try:
             while running:
                 layout = _build_layout(wm, start_time)

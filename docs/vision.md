@@ -1,36 +1,43 @@
-# RelayOS — The Operating System for AI Agents
+# RelayOS — Persistent AI Workers for Developers
 
 ## Problem
 
-Every AI tool today is an island.
+Every AI tool today is an island. You use Claude Code for architecture, ChatGPT for reasoning, Gemini for research, DeepSeek for coding. Each is excellent. They don't talk to each other. You copy-paste context between them.
 
-You use Claude Code for architecture, ChatGPT for reasoning, Gemini for research, DeepSeek for coding. Each is excellent at what it does. But they don't talk to each other. You copy-paste context between them. You waste 30% of your time on manual handoff. You burn premium tokens on tasks a free model could handle.
-
-The AI ecosystem has a proliferation of clients (Claude Code, Cursor, ChatGPT, Gemini, Open WebUI, Cherry Studio...) but **no coordination layer** between them. The MCP protocol solves the tool-access problem but not the multi-agent coordination problem.
+Existing solutions either force you into a browser chat UI or require Kubernetes infrastructure. There's nothing for the terminal-native developer who wants persistent AI teammates.
 
 ## Solution
 
-RelayOS is the coordination layer for AI agents.
+RelayOS is a terminal-native AI workforce manager. Think of it as tmux for your AI agents:
 
-It sits **between** your AI tools and the models they call. Like Docker orchestrates containers, RelayOS orchestrates agents — routing tasks to the right model, maintaining shared memory, managing costs, and connecting MCP tools — all while letting you keep using the tools you already love.
+- Spawn persistent workers (architect, researcher, coder)
+- Workers keep project context across sessions
+- Workers collaborate through a shared inbox
+- All from your terminal -- zero infrastructure required
 
 ## Principles
 
-1. **Infrastructure, not a client.** Users keep their existing tools (Claude Code, Cursor, ChatGPT). RelayOS works underneath.
-2. **Router, not an aggregator.** Not "one UI to rule them all" — but "intelligent routing to the right agent."
-3. **Cost-aware by default.** Free tiers first, paid only when needed.
-4. **MCP-native.** MCP is the universal protocol. RelayOS is both consumer and provider.
-5. **Open source MIT.** No vendor lock-in, no hidden pricing.
+1. **Terminal-native.** Primary interface is `relay`. Web UI is optional.
+2. **Workers, not API calls.** A worker is a persistent team member with identity, memory, and inbox.
+3. **Persistent by default.** Workers survive across sessions. Tomorrow they remember today.
+4. **Zero infrastructure.** `pip install relayos && relay`. No Docker, no Postgres, no Redis.
+5. **Cost-aware.** Free tiers first, smart routing, context compression between steps.
 
 ## Target
 
 ```
-Primary: AI-integrated developer using 3+ AI tools daily
-Secondary: Small team wanting unified agent infrastructure
-Tertiary: MCP server builders seeking distribution
+Primary:   Solo developer with 3+ AI subscriptions
+           Terminal-native, hates context switching
+           Wants persistent AI teammates, not chat windows
+
+Secondary: Small team sharing a pool of AI workers
+           Wants shared memory and inter-worker messaging
 ```
 
 ## Core Metaphor
 
-> RelayOS is to AI agents what Docker is to containers:
-> a runtime, a routing layer, and an ecosystem — not the app itself.
+> RelayOS is to AI agents what tmux is to terminal sessions:
+> a persistent workspace manager that keeps your team alive.
+>
+> Or what htop is to processes:
+> a live dashboard of your AI workforce.

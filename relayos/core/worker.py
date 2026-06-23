@@ -104,6 +104,7 @@ class WorkerManager:
     - A provider + model (what powers it)
     - Persistent memory (remembers project context)
     - An inbox (receives messages from other workers/user)
+    - Persistence across sessions (SQLite)
     """
 
     def __init__(self, config_path: Optional[str] = None):
@@ -112,22 +113,96 @@ class WorkerManager:
         self.memory = MemoryStore()
         self.inbox = WorkerInbox()
         self.config = load_config(Path(config_path) if config_path else None)
-        self._load_defaults()
+        self._init_db()
+        self._load_from_db()
+
+    def _init_db(self):
+        from pathlib import Path as _Path
+        db_path = _Path("~/.relayos/workers.db").expanduser()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        import sqlite3
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS workers (
+                    name TEXT PRIMARY KEY,
+                    role TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    emoji TEXT DEFAULT '🤖',
+                    status TEXT DEFAULT 'idle',
+                    description TEXT DEFAULT '',
+                    task_count INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    last_used TEXT
+                )
+            """)
+            conn.commit()
+
+    def _load_from_db(self):
+        import sqlite3
+        db_path = Path("~/.relayos/workers.db").expanduser()
+        if not db_path.exists():
+            self._load_defaults()
+            self._save_all()
+            return
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute("SELECT * FROM workers ORDER BY created_at").fetchall()
+        if not rows:
+            self._load_defaults()
+            self._save_all()
+            return
+        for r in rows:
+            emoji = r["emoji"] if r["emoji"] else "🤖"
+            desc = r["description"] if r["description"] else ""
+            w = Worker(
+                name=r["name"], role=r["role"], provider=r["provider"],
+                model=r["model"], emoji=emoji,
+                status=r["status"], description=desc,
+                task_count=r["task_count"] or 0,
+                created_at=r["created_at"], last_used=r["last_used"],
+            )
+            self._workers[w.name] = w
+
+    def _save_all(self):
+        import sqlite3
+        db_path = Path("~/.relayos/workers.db").expanduser()
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.execute("DELETE FROM workers")
+            for w in self._workers.values():
+                conn.execute(
+                    "INSERT INTO workers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (w.name, w.role, w.provider, w.model, w.emoji, w.status,
+                     w.description, w.task_count, w.created_at, w.last_used),
+                )
+            conn.commit()
+
+    def _save_worker(self, w: Worker):
+        import sqlite3
+        db_path = Path("~/.relayos/workers.db").expanduser()
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO workers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (w.name, w.role, w.provider, w.model, w.emoji, w.status,
+                 w.description, w.task_count, w.created_at, w.last_used),
+            )
+            conn.commit()
 
     def _load_defaults(self):
-        """Load worker definitions from config or create defaults."""
+        """Create default workers on first run."""
         for name, role_def in DEFAULT_ROLES.items():
             self.create(name=name, role=name, **role_def)
 
     def create(self, name: str, role: str, provider: str, model: str,
                emoji: str = "🤖", description: str = "") -> Worker:
-        """Create a new worker."""
+        """Create a new worker and persist to DB."""
         w = Worker(
             name=name, role=role, provider=provider, model=model,
             emoji=emoji, description=description,
         )
         with self._lock:
             self._workers[name] = w
+        self._save_worker(w)
         logger.info(f"Worker '{name}' created — {provider}/{model}")
         return w
 
@@ -141,8 +216,13 @@ class WorkerManager:
         with self._lock:
             if name in self._workers:
                 del self._workers[name]
-                return True
-            return False
+        # Remove from DB
+        import sqlite3
+        db_path = Path("~/.relayos/workers.db").expanduser()
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.execute("DELETE FROM workers WHERE name = ?", (name,))
+            conn.commit()
+        return True
 
     def run(self, worker_name: str, prompt: str, **kwargs) -> str:
         """Run a prompt on a specific worker via its provider adapter."""

@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "relayos"
 version = "0.1.0a1"
-description = "Multi-agent orchestration layer for AI tools"
+description = "Persistent AI Workers for Developers — terminal-native AI workforce manager"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 authors = [{name = "jjjjjjjjnnjnn"}]
-keywords = ["multi-agent", "llm", "orchestration", "mcp", "ai", "workflow", "claude", "gpt", "gemini"]
+keywords = [ "ai-workers", "ai-team", "tui", "persistent-agents", "multi-agent", "llm", "orchestration", "mcp", "ai", "workflow", "claude", "gpt", "gemini"]
 
 classifiers = [
     "Development Status :: 3 - Alpha",
