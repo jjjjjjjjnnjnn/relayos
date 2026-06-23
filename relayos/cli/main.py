@@ -508,6 +508,56 @@ def inbox_stats():
     click.echo(f"Per worker:      {s['per_worker']}")
 
 
+# ─── Worker Focus ──────────────────────────────────────────
+
+
+@cli.command()
+@click.argument("worker_name")
+def focus(worker_name: str):
+    """Focus on a single worker — see their identity, decisions, inbox."""
+    from relayos.tui.focus import focus_worker
+    focus_worker(worker_name)
+
+
+# ─── Team Templates ────────────────────────────────────────
+
+
+@cli.group()
+def team():
+    """Manage AI teams — create from templates."""
+    pass
+
+
+@team.command("create")
+@click.argument("template_name")
+def team_create(template_name: str):
+    """Create a team from a template (startup, research, devops, writing)."""
+    from relayos.core.team import create_team, list_templates
+    from relayos.core.worker import WorkerManager
+    wm = WorkerManager()
+    try:
+        created = create_team(template_name, wm)
+        if created:
+            click.echo(f"[OK] Created team '{template_name}' with {len(created)} workers:")
+            for name in created:
+                w = wm.get(name)
+                click.echo(f"  {w.emoji} {w.name:<15} {w.role:<14} {w.provider}/{w.model}" if w else f"  {name}")
+        else:
+            click.echo(f"[OK] Team '{template_name}' already exists.")
+    except ValueError as e:
+        click.echo(f"[ERR] {e}", err=True)
+
+
+@team.command("list")
+def team_list():
+    """List available team templates."""
+    from relayos.core.team import list_templates
+    templates = list_templates()
+    click.echo("Available team templates:")
+    for t in templates:
+        click.echo(f"  {t['name']:<15} {t['worker_count']} workers — {t['description']}")
+
+
 @cli.command()
 @click.option("--host", default="127.0.0.1", help="Bind address")
 @click.option("--port", default=8080, type=int, help="Port")

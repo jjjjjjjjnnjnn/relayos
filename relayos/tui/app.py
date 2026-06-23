@@ -149,10 +149,15 @@ def _render_worker_table(wm: WorkerManager) -> Panel:
 
 
 def _render_sidebar(wm: WorkerManager) -> Layout:
-    """Sidebar with inbox and tips."""
+    """Sidebar with inbox, cost, and tips."""
     sb = Layout()
-    sb.split_column(Layout(name="inbox", ratio=2), Layout(name="tips", ratio=1))
+    sb.split_column(
+        Layout(name="inbox", ratio=2),
+        Layout(name="cost", ratio=1),
+        Layout(name="tips", ratio=1),
+    )
     sb["inbox"].update(_render_inbox(wm))
+    sb["cost"].update(_render_cost(wm))
     sb["tips"].update(_render_tips())
     return sb
 
@@ -169,28 +174,73 @@ def _render_inbox(wm: WorkerManager) -> Panel:
     return Panel("\n".join(lines), title="[bold]Inbox[/bold]", border_style="dim")
 
 
+def _render_cost(wm: WorkerManager) -> Panel:
+    """Cost panel — per-provider token/cost summary."""
+    try:
+        from relayos.cost import CostManager
+        cm = CostManager()
+        report = cm.get_report()
+        lines = []
+        for pname, pdata in report.get("providers", {}).items():
+            cost = pdata["cost"]
+            if cost > 0:
+                lines.append(f"  {pname:<12} ${cost:.4f}")
+            else:
+                lines.append(f"  {pname:<12} free")
+        if not lines:
+            lines.append("  No usage yet")
+        return Panel("\n".join(lines), title="[bold]Today's Cost[/bold]", border_style="dim")
+    except Exception:
+        return Panel("  Cost tracking inactive", title="[bold]Cost[/bold]", border_style="dim")
+
+
 def _render_tips() -> Panel:
     """Quick tips."""
     tips = Text()
     tips.append("\n").append(" Quick commands:", style="bold cyan")
-    tips.append("\n").append("  relay worker create <name>", style="dim")
+    tips.append("\n").append("  relay focus <name>", style="dim")
+    tips.append("\n").append("  relay team create startup", style="dim")
     tips.append("\n").append("  relay run workflow.yaml", style="dim")
     tips.append("\n").append("  relay inbox list <name>", style="dim")
-    tips.append("\n").append("  relay serve (web UI)", style="dim")
+    tips.append("\n").append("  relayos serve (web UI)", style="dim")
     tips.append("\n").append("\n [q] quit | auto-refresh 2s", style="italic dim")
     return Panel(tips, title="[bold]Commands[/bold]", border_style="dim")
 
 
 def _render_footer(wm: WorkerManager) -> Panel:
-    """Status bar."""
+    """Status bar with cost and inbox stats."""
     stats = wm.stats()
     text = Text()
     text.append(" STATUS: ", style="bold green")
     text.append(f"{stats['total_workers']} workers online", style="green")
     text.append("  |  ", style="dim")
+    # Inbox count
+    try:
+        from relayos.core.inbox import WorkerInbox
+        inbox = WorkerInbox()
+        istats = inbox.get_stats()
+        if istats["unread"]:
+            text.append(f"Inbox: {istats['unread']}", style="yellow")
+        else:
+            text.append("Inbox: 0", style="dim")
+    except Exception:
+        text.append("Inbox: -", style="dim")
+    text.append("  |  ", style="dim")
+    # Total cost
+    try:
+        from relayos.cost import CostManager
+        cm = CostManager()
+        report = cm.get_report()
+        if report["total_cost"] > 0:
+            text.append(f"Cost: ${report['total_cost']:.4f}", style="white")
+        else:
+            text.append("Cost: $0", style="dim")
+    except Exception:
+        text.append("Cost: -", style="dim")
+    text.append("  |  ", style="dim")
     text.append("~/.relayos/  ", style="dim")
     text.append("  |  ", style="dim")
-    text.append("[q] quit  [r] refresh", style="italic dim")
+    text.append("[q] quit  [f] focus  [r] refresh", style="italic dim")
     return Panel(text, style="green", height=3)
 
 
