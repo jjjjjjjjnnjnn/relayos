@@ -3,8 +3,8 @@
 A Worker is a logical entity with:
 - A role (architect, researcher, coder, reviewer)
 - A provider/model assignment
-- Persistent memory (project context it knows)
-- An inbox for receiving tasks
+- Persistent state (project facts it knows)
+- An inbox (task-based, not message-based)
 - Status tracking across sessions
 
 Workers are the user-facing concept. They bridge between:
@@ -14,6 +14,7 @@ Workers are the user-facing concept. They bridge between:
 """
 from __future__ import annotations
 
+import json
 import logging
 import threading
 from dataclasses import dataclass, field
@@ -21,10 +22,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from relayos.adapters import get_adapter, list_adapters
+from relayos.adapters import get_adapter
 from relayos.config import load_config
-from relayos.core.inbox import WorkerInbox
-from relayos.memory.store import MemoryStore
+from relayos.core.compiler import StateCompiler
+from relayos.core.state import StateStore
+
+logger = logging.getLogger(__name__)
 from relayos.orchestrator.pool import TerminalPool
 
 logger = logging.getLogger(__name__)
@@ -102,107 +105,46 @@ class WorkerManager:
     Workers are the primary user-facing concept. Each worker has:
     - A name and role (user gives it identity)
     - A provider + model (what powers it)
-    - Persistent memory (remembers project context)
-    - An inbox (receives messages from other workers/user)
-    - Persistence across sessions (SQLite)
+    - Persistent state via StateStore (project facts, decisions, tasks)
+    - An inbox (tasks from other workers/user)
+    - Persistence across sessions (SQLite via StateStore)
     """
 
     def __init__(self, config_path: Optional[str] = None):
         self._workers: dict[str, Worker] = {}
         self._lock = threading.Lock()
-        self.memory = MemoryStore()
-        self.inbox = WorkerInbox()
+        self.store = StateStore()
+        self.compiler = StateCompiler(self.store)
         self.config = load_config(Path(config_path) if config_path else None)
-        self._init_db()
-        self._load_from_db()
+        self._load_from_store()
 
-    def _init_db(self):
-        from pathlib import Path as _Path
-        db_path = _Path("~/.relayos/workers.db").expanduser()
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        import sqlite3
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS workers (
-                    name TEXT PRIMARY KEY,
-                    role TEXT NOT NULL,
-                    provider TEXT NOT NULL,
-                    model TEXT NOT NULL,
-                    emoji TEXT DEFAULT '🤖',
-                    status TEXT DEFAULT 'idle',
-                    description TEXT DEFAULT '',
-                    task_count INTEGER DEFAULT 0,
-                    created_at TEXT NOT NULL,
-                    last_used TEXT
-                )
-            """)
-            conn.commit()
-
-    def _load_from_db(self):
-        import sqlite3
-        db_path = Path("~/.relayos/workers.db").expanduser()
-        if not db_path.exists():
-            self._load_defaults()
-            self._save_all()
+    def _load_from_store(self):
+        """Load workers from StateStore. Create defaults if empty."""
+        db_workers = self.store.list_workers()
+        if not db_workers:
+            self._create_defaults()
             return
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.row_factory = sqlite3.Row
-            rows = conn.execute("SELECT * FROM workers ORDER BY created_at").fetchall()
-        if not rows:
-            self._load_defaults()
-            self._save_all()
-            return
-        for r in rows:
-            emoji = r["emoji"] if r["emoji"] else "🤖"
-            desc = r["description"] if r["description"] else ""
-            w = Worker(
-                name=r["name"], role=r["role"], provider=r["provider"],
-                model=r["model"], emoji=emoji,
-                status=r["status"], description=desc,
-                task_count=r["task_count"] or 0,
-                created_at=r["created_at"], last_used=r["last_used"],
+        for w in db_workers:
+            worker = Worker(
+                name=w["id"], role=w["role"],
+                provider=w.get("provider", ""),
+                model=w.get("model", ""),
+                status="idle",
+                task_count=w.get("task_count", 0),
             )
-            self._workers[w.name] = w
+            self._workers[worker.name] = worker
 
-    def _save_all(self):
-        import sqlite3
-        db_path = Path("~/.relayos/workers.db").expanduser()
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.execute("DELETE FROM workers")
-            for w in self._workers.values():
-                conn.execute(
-                    "INSERT INTO workers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (w.name, w.role, w.provider, w.model, w.emoji, w.status,
-                     w.description, w.task_count, w.created_at, w.last_used),
-                )
-            conn.commit()
-
-    def _save_worker(self, w: Worker):
-        import sqlite3
-        db_path = Path("~/.relayos/workers.db").expanduser()
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO workers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (w.name, w.role, w.provider, w.model, w.emoji, w.status,
-                 w.description, w.task_count, w.created_at, w.last_used),
-            )
-            conn.commit()
-
-    def _load_defaults(self):
-        """Create default workers on first run."""
+    def _create_defaults(self):
         for name, role_def in DEFAULT_ROLES.items():
             self.create(name=name, role=name, **role_def)
 
     def create(self, name: str, role: str, provider: str, model: str,
                emoji: str = "🤖", description: str = "") -> Worker:
-        """Create a new worker and persist to DB."""
-        w = Worker(
-            name=name, role=role, provider=provider, model=model,
-            emoji=emoji, description=description,
-        )
+        """Create a new worker and persist via StateStore."""
+        w = Worker(name=name, role=role, provider=provider, model=model, emoji=emoji, description=description)
         with self._lock:
             self._workers[name] = w
-        self._save_worker(w)
+        self.store.upsert_worker(name, role, provider, model)
         logger.info(f"Worker '{name}' created — {provider}/{model}")
         return w
 
@@ -216,11 +158,11 @@ class WorkerManager:
         with self._lock:
             if name in self._workers:
                 del self._workers[name]
-        # Remove from DB
+        # StateStore doesn't have delete_worker yet, use raw SQL
         import sqlite3
-        db_path = Path("~/.relayos/workers.db").expanduser()
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.execute("DELETE FROM workers WHERE name = ?", (name,))
+        db = str(Path("~/.relayos/state.db").expanduser())
+        with sqlite3.connect(db) as conn:
+            conn.execute("DELETE FROM workers WHERE id=?", (name,))
             conn.commit()
         return True
 
@@ -231,7 +173,6 @@ class WorkerManager:
             raise ValueError(f"Worker '{worker_name}' not found")
 
         w.status = "busy"
-        w.last_used = datetime.now(timezone.utc).isoformat()
         w.task_count += 1
 
         try:
@@ -241,9 +182,17 @@ class WorkerManager:
             })
             response = adapter.chat(prompt, **kwargs)
 
-            # Auto-store in worker's memory
-            self.memory.set(f"{worker_name}:last_task", prompt)
-            self.memory.set(f"{worker_name}:last_output", response.content)
+            # Store result as structured state (not chat history)
+            self.store.set_state(f"worker:{worker_name}:last_output", response.content[:500], updated_by=worker_name)
+            self.store.incr_task_count(worker_name)
+
+            # Auto-extract decision if output looks structured
+            try:
+                parsed = json.loads(response.content)
+                if isinstance(parsed, dict):
+                    self.compiler.resolve(worker_name, parsed)
+            except (json.JSONDecodeError, TypeError):
+                pass  # free-form output, no structured parsing
 
             w.status = "idle"
             return response.content
@@ -251,17 +200,22 @@ class WorkerManager:
             w.status = "error"
             raise
 
-    def send_task(self, from_worker: str, to_worker: str, task: str) -> int:
-        """Send a task from one worker to another via inbox."""
-        return self.inbox.send(to=to_worker, body=task, subject="task", from_worker=from_worker)
+    def send_task(self, from_worker: str, to_worker: str, task_body: str, task_type: str = "request") -> str:
+        """Send a task from one worker to another via StateStore."""
+        return self.store.create_task(
+            from_worker=from_worker,
+            to_worker=to_worker,
+            payload={"body": task_body, "type": task_type},
+            task_type=task_type,
+        )
 
     def get_team(self) -> list[dict[str, Any]]:
         """Get the full team status (like 'htop' for AI workers)."""
         result = []
+        all_state = self.store.get_all_state()
         for w in self.list():
-            unread = self.inbox.count_unread(w.name)
-            mem = self.memory.get_all()
-            worker_keys = {k: v for k, v in mem.items() if k.startswith(f"{w.name}:")}
+            unread = self.store.inbox_count(w.name)
+            worker_keys = len([k for k in all_state if k.startswith(f"worker:{w.name}:")])
             result.append({
                 "name": w.name,
                 "role": w.role,
