@@ -121,7 +121,7 @@ class CLIProvider(BaseProvider):
                 error=f"CLI '{binary}' not found. Install it first.",
             )
 
-        # Build command args
+        # Build command args — support providers that take prompt via stdin
         cmd = [binary]
         typed_cmds = {
             "claude": ["-p", prompt],
@@ -130,13 +130,18 @@ class CLIProvider(BaseProvider):
             "codex": ["-p", prompt],
             "qcode": ["--prompt", prompt],
         }
-        args = typed_cmds.get(cfg.provider, ["--prompt", prompt])
-        cmd.extend(args)
+        args = typed_cmds.get(cfg.provider)
+        if args is not None:
+            cmd.extend(args)
+            pipe_stdin = False
+        else:
+            # Default: pipe prompt via stdin, no CLI args
+            pipe_stdin = True
 
         start = time.time()
         try:
             result = subprocess.run(
-                cmd, input=prompt if "{stdin}" in str(cmd) else None,
+                cmd, input=prompt if pipe_stdin else None,
                 capture_output=True, text=True, timeout=300,
             )
             dur = int((time.time() - start) * 1000)

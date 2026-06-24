@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 import sqlite3
-import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,16 +57,23 @@ class BudgetGuard:
         end = now.isoformat()
         return start, end
 
+    def _connect(self) -> sqlite3.Connection:
+        """Get a WAL-mode connection for concurrent access."""
+        conn = sqlite3.connect(self._db_path)
+        conn.execute("PRAGMA journal_mode=WAL")
+        return conn
+
     def _sum_costs(self, start: str, end: str) -> float:
         """Sum costs in the time range."""
         try:
-            with sqlite3.connect(self._db_path) as conn:
+            with self._connect() as conn:
                 row = conn.execute(
                     "SELECT COALESCE(SUM(cost), 0) as total FROM usage WHERE timestamp >= ? AND timestamp <= ?",
                     (start, end),
                 ).fetchone()
                 return row[0] if row else 0.0
-        except Exception:
+        except Exception as e:
+            logger.warning(f"BudgetGuard: failed to read spend: {e}")
             return 0.0
 
     def check(self, estimated_cost: float) -> GuardResult:
@@ -76,14 +82,20 @@ class BudgetGuard:
         Returns:
             GuardResult with action="allow", "confirm", or "block"
         """
-        # 1. Per-task check
-        if estimated_cost > self.limits.per_task_usd:
+        # Sanity: zero limits would block everything
+        if self.limits.per_task_usd <= 0:
+            return GuardResult(action="allow", message="Per-task limit is 0 (no limit)")
+
+        # 1. Monthly check (hard block)
+        month_start, _ = self._month_range()
+        month_spent = self._sum_costs(month_start, datetime.now(timezone.utc).isoformat())
+        if month_spent + estimated_cost > self.limits.monthly_usd:
             return GuardResult(
-                action="confirm",
-                message=f"Estimated cost ${estimated_cost:.3f} exceeds per-task limit ${self.limits.per_task_usd:.2f}. Confirm?",
+                action="block",
+                message=f"Monthly spend ${month_spent:.3f} + estimated ${estimated_cost:.3f} exceeds monthly limit ${self.limits.monthly_usd:.2f}",
             )
 
-        # 2. Daily check
+        # 2. Daily check (hard block)
         start, end = self._today_range()
         today_spent = self._sum_costs(start, end)
         if today_spent + estimated_cost > self.limits.daily_usd:
@@ -92,8 +104,15 @@ class BudgetGuard:
                 message=f"Daily spend ${today_spent:.3f} + estimated ${estimated_cost:.3f} exceeds daily limit ${self.limits.daily_usd:.2f}",
             )
 
-        # 3. Warn at percentage
-        if today_spent > 0:
+        # 3. Per-task check (confirm)
+        if estimated_cost > self.limits.per_task_usd:
+            return GuardResult(
+                action="confirm",
+                message=f"Estimated cost ${estimated_cost:.3f} exceeds per-task limit ${self.limits.per_task_usd:.2f}. Confirm?",
+            )
+
+        # 4. Warn at percentage
+        if today_spent > 0 and self.limits.daily_usd > 0:
             pct = (today_spent / self.limits.daily_usd) * 100
             if pct >= self.limits.warn_at_percent:
                 logger.info(f"Daily spend at {pct:.0f}% of limit (${today_spent:.3f}/${self.limits.daily_usd:.2f})")

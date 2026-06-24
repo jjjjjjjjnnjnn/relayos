@@ -149,6 +149,7 @@ class CostManager:
             for provider in order:
                 if provider in available_providers:
                     return provider
-            return order[0]  # none available, return first anyway
+            # Fallback: return first available provider, not first in order
+            return available_providers[0] if available_providers else order[0]
 
         return order[0]

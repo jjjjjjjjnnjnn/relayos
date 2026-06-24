@@ -27,21 +27,15 @@ class ProviderRouter:
         return [create_provider(p) for p in self.providers if p.enabled]
 
     def select(self, task_type: str = "", profile: str = "balanced") -> BaseProvider:
-        """Select best provider for a task type.
-
-        profile:
-          - "free"       → prefer CLI (zero API cost)
-          - "cheapest"   → lowest cost
-          - "quality"    → best model (API only)
-          - "balanced"/"weighted" → weighted random (default)
-        """
+        """Select best provider for a task type."""
         enabled = self.get_enabled()
         if not enabled:
-            # Fallback: try any CLI provider
-            cli = [p for p in enabled if isinstance(p, __import__("relayos.providers", fromlist=["CLIProvider"]).CLIProvider)]
-            if cli:
-                return cli[0]
-            raise RuntimeError("No enabled providers. Configure API keys or install a CLI terminal.")
+            # Fallback: try CLI providers from config
+            for pd in self.providers:
+                if pd.type == "cli" and pd.enabled:
+                    from relayos.providers import CLIProvider
+                    return CLIProvider(pd)
+            raise RuntimeError("No enabled providers found. Install a CLI terminal (claude, opencode) or configure API keys.")
 
         if profile == "free":
             cli = [p for p in enabled if p.config.type == "cli"]

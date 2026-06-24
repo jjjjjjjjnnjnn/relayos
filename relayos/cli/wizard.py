@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import sys
 
 from relayos.i18n import t
@@ -61,7 +62,6 @@ def run_wizard() -> bool:
         }.get(p.provider, "")
 
         # Check if already set in env
-        import os
         env_key = os.environ.get(env_var, "")
         if env_key:
             collected_keys[p.provider] = env_key
@@ -121,7 +121,12 @@ def run_wizard() -> bool:
             "default": "balanced",
         },
     }
-    config_path.write_text(yaml.dump(config, default_flow_style=False, allow_unicode=True), encoding="utf-8")
+    try:
+        config_path.write_text(yaml.dump(config, default_flow_style=False, allow_unicode=True), encoding="utf-8")
+    except (OSError, PermissionError) as e:
+        print(f"\n  [ERR] Failed to write config: {e}")
+        print("  Check permissions for:", config_path)
+        return False
 
     # ── Done ──
     print("─" * 50)
