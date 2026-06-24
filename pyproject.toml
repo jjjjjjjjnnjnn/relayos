@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "relayos"
-version = "0.1.0a1"
-description = "Persistent AI Workers for Developers — terminal-native AI workforce manager"
+version = "0.2.0a1"
+description = "Agent Operating System — terminal-native AI workspace for persistent worker teams"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"

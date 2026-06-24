@@ -267,6 +267,14 @@ def _render_footer(profile: str, team: list[dict]) -> Panel:
 
 def run_tui():
     """Run the TUI workspace."""
+    # Check config exists first
+    from relayos.config import get_config_dir
+    if not (get_config_dir() / "config.yaml").exists():
+        print("RelayOS config not found.")
+        print("Run: relayos config init")
+        print("Or:  relayos init")
+        return
+
     wm = WorkerManager()
     ss = SessionStore()
     _getch = _getch_win if sys.platform == "win32" else _getch_unix
@@ -319,7 +327,7 @@ def run_tui():
                     current_view = "graph"
                 elif key == "k":
                     current_view = "welcome"
-                elif key in "123456789":
+                elif key and key.isdigit() and "1" <= key <= "9":
                     selected_idx = int(key) - 1
                     if current_view in ("welcome",):
                         current_view = "chat"
