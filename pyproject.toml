@@ -36,6 +36,9 @@ server = [
     "uvicorn>=0.29",
     "pydantic>=2.0",
 ]
+executor = [
+    "mco>=0.9",  # multi-agent execution backend
+]
 
 [project.urls]
 Homepage = "https://github.com/jjjjjjjjnnjnn/relayos"
