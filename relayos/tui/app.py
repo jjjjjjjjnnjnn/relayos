@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 CTRL_P = "\x10"; CTRL_X = "\x18"; CTRL_C = "\x03"
 CTRL_U = "\x15"; CTRL_A = "\x01"; CTRL_E = "\x05"
-TAB = "\x09"; ESC = "\x1b"; ENTER = "\r"; BS = "\x7f"
+TAB = "\x09"; ESC = "\x1b"; ENTER = "\r"
+BS = "\x7f"    # DEL (Unix raw mode)
+BS_WIN = "\x08"  # Backspace (Windows)
 
 
 def _getch() -> str:
@@ -340,7 +342,7 @@ def run_tui():
                         if 0 <= pal_sel < len(items):
                             execute_action(items[pal_sel].get("action",""))
                         view = "chat"; pal_filter = ""; pal_sel = 0
-                    elif key == BS: pal_filter = pal_filter[:-1]; pal_sel = 0
+                    elif key in (BS, BS_WIN): pal_filter = pal_filter[:-1]; pal_sel = 0
                     elif key == "^A": pal_sel = max(0, pal_sel - 1)
                     elif key == "^B": pal_sel = min(len(pal_items(pal_filter))-1, pal_sel + 1)
                     elif key and len(key)==1 and key.isprintable(): pal_filter += key; pal_sel = 0
@@ -378,10 +380,17 @@ def run_tui():
                     elif key == ENTER: submit()
                     elif key == ESC:
                         if buf: buf.clear()
-                    elif key == BS:
+                    elif key in (BS, BS_WIN):
                         if buf: buf.pop()
                     elif key == CTRL_X:
-                        time.sleep(0.1); nk = _getch()
+                        # Wait up to 1.2s for chord key — 6 tries × 200ms
+                        nk = ""
+                        for _ in range(6):
+                            time.sleep(0.05)
+                            nk = _getch()
+                            if nk: break
+                            time.sleep(0.15)
+                        nk = nk.lower()
                         if nk == "n":
                             s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
                             sess = s; msgs.clear()
@@ -398,7 +407,7 @@ def run_tui():
                             execute_action("knowledge_view")
                         elif nk == "g":
                             view = "graph"
-                        elif nk == "?":
+                        elif nk in ("?", "/"):
                             old = list(buf); buf.clear()
                             for ch in "/help": buf.append(ch)
                             submit()
