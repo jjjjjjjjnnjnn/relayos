@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <picture>
     <img src="https://img.shields.io/badge/RelayOS-v0.1.0a1-8B5CF6?style=for-the-badge" alt="RelayOS">
   </picture>
@@ -7,19 +7,18 @@
 <h1 align="center">RelayOS</h1>
 
 <p align="center">
-  <strong>AI 도구 간 복사-붙여넣기는 이제 그만.</strong><br>
-  Claude, GPT, Gemini, DeepSeek 및 로컬 모델 전반에 걸쳐<br>
-  공유 메모리, 워크플로 오케스트레이션, MCP 통합을 갖춘<br>
-  영구적인 AI 워커를 생성하세요.
+  <strong>개발자를 위한 영구적 AI 워커.</strong><br>
+  터미널 네이티브 AI 실행 런타임 — Claude, GPT, Gemini, DeepSeek 및 로컬 모델로 작업을 라우팅하고,<br>
+  기능 인식 스케줄링, 공유 프로젝트 메모리, 다중 단계 실행 그래프를 제공합니다.
 </p>
 
 <p align="center">
-  <a href="#-빠른-시작"><img src="https://img.shields.io/badge/-빠른_시작-10B981?style=flat-square" alt="빠른 시작"></a>
-  <a href="#-기능"><img src="https://img.shields.io/badge/-기능-3B82F6?style=flat-square" alt="기능"></a>
-  <a href="#%EF%B8%8F-설정"><img src="https://img.shields.io/badge/-설정-8B5CF6?style=flat-square" alt="설정"></a>
-  <a href="#-예제"><img src="https://img.shields.io/badge/-예제-F59E0B?style=flat-square" alt="예제"></a>
-  <a href="#%EF%B8%8F-아키텍처"><img src="https://img.shields.io/badge/-아키텍처-EC4899?style=flat-square" alt="아키텍처"></a>
-  <a href="#%EF%B8%8F-감사의-말"><img src="https://img.shields.io/badge/-감사의_말-6366F1?style=flat-square" alt="감사의 말"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/-Quick_Start-10B981?style=flat-square" alt="Quick Start"></a>
+  <a href="#-features"><img src="https://img.shields.io/badge/-Features-3B82F6?style=flat-square" alt="Features"></a>
+  <a href="#-cli-reference"><img src="https://img.shields.io/badge/-CLI_Reference-8B5CF6?style=flat-square" alt="CLI Reference"></a>
+  <a href="#%EF%B8%8F-architecture"><img src="https://img.shields.io/badge/-Architecture-EC4899?style=flat-square" alt="Architecture"></a>
+  <a href="#%EF%B8%8F-credits"><img src="https://img.shields.io/badge/-Credits-6366F1?style=flat-square" alt="Credits"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/English-Doc-FFFFFF?style=flat-square" alt="English"></a>
   <a href="README_ZH.md"><img src="https://img.shields.io/badge/中文-文档-EA4335?style=flat-square" alt="中文"></a>
   <a href="README_DE.md"><img src="https://img.shields.io/badge/Deutsch-Dokument-FFD700?style=flat-square" alt="Deutsch"></a>
   <a href="README_ES.md"><img src="https://img.shields.io/badge/Español-Doc-00C853?style=flat-square" alt="Español"></a>
@@ -33,78 +32,103 @@
 ## 📋 목차
 
 | 섹션 | 설명 |
-|---------|-------------|
-| [🎯 개요](#-개요) | RelayOS가 무엇이고 왜 필요한지 |
-| [✨ 기능](#-기능) | 현재 기능 |
-| [⚡ 빠른 시작](#-빠른-시작) | 설치 및 첫 워크플로 실행 |
-| [📖 사용자 가이드](#-사용자-가이드) | 워크플로, 터미널, 메모리 |
-| [⚙️ 설정](#%EF%B8%8F-설정) | 프로바이더, 터미널, 라우팅 |
-| [🏗️ 아키텍처](#%EF%B8%8F-아키텍처) | 시스템 설계 |
-| [📁 예제](#-예제) | 즉시 사용 가능한 워크플로 |
-| [🛣️ 로드맵](#%EF%B8%8F-로드맵) | 향후 계획 |
-| [🙏 감사의 말](#%EF%B8%8F-감사의-말) | 감사의 말 |
-| [📄 라이선스](#-라이선스) | Apache 2.0 |
+|------|------|
+| [🎯 개요](#-overview) | RelayOS가 무엇이고 왜 필요한지 |
+| [✨ 기능](#-features) | 모든 기능 (V0.1–V0.9) |
+| [⚡ 빠른 시작](#-quick-start) | 설치 및 시작 |
+| [🔧 CLI 참조](#-cli-reference) | 전체 22개 명령어 |
+| [🏗️ 아키텍처](#%EF%B8%8F-architecture) | 시스템 설계 |
+| [🛣️ 로드맵](#%EF%B8%8F-roadmap) | 버전 기록 및 미래 계획 |
+| [🙏 크레딧](#%EF%B8%8F-credits) | 감사의 말 |
+| [📄 라이선스](#-license) | Apache 2.0 |
 
 ---
 
 ## 🎯 개요
 
-**RelayOS**는 AI 에이전트를 위한 오픈소스 조정 레이어입니다——Docker가 컨테이너를 위한 것처럼, AI 도구를 위한 것입니다.
+**RelayOS**는 터미널 네이티브 AI 실행 런타임입니다. AI 팀을 위한 htop과 같습니다.
 
-### 문제
+여러분은 여러 AI 도구(Claude Code, ChatGPT, Gemini, DeepSeek, 로컬 모델)를 가지고 있습니다. 각각은 훌륭하지만, 서로 대화하지 못합니다. RelayOS는 작업을 올바른 모델로 라우팅하고, 세션 간에 프로젝트 컨텍스트를 기억하며, 다중 단계 계획을 실행하는 조정 계층입니다 — 모두 터미널에서, 인프라 없이.
 
-여러분은 **Claude Code**를 아키텍처에, **ChatGPT**를 추론에, **Gemini**를 연구에, **DeepSeek**를 코딩에 사용합니다. 각 도구는 훌륭하지만, **서로 대화하지 않습니다.** 시간의 30%를 도구 간 컨텍스트 복사-붙여넣기와 무료 모델로 처리할 수 있는 작업에 프리미엄 토큰을 소모하는 데 낭비하고 있습니다.
-
-### 해결책
+### 진화 과정
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    AI 도구                             │
-│   Claude Code    ChatGPT    Gemini    DeepSeek       │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│                   RelayOS                        │
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │  터미널 풀  │  │ 워크플로    │  │  공유 메모리  │  │
-│  │ (멀티 CLI)  │  │ 엔진(YAML) │  │  (SQLite)   │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  │
-│  ┌─────────────┐  ┌─────────────┐                    │
-│  │  어댑터     │  │ MCP 클라이언트│                  │
-│  │ (5 프로바이더)│  │  (도구)    │                    │
-│  └─────────────┘  └─────────────┘                    │
-└──────────────────────────────────────────────────────┘
+V0.1  모델 라우팅          → 올바른 모델 선택
+V0.2  터미널 풀            → CLI 워커 관리
+V0.3  워커 시스템          → 영구적 AI 팀원
+V0.4  상태 컴파일러        → 채팅 기록이 아닌 구조화된 상태
+V0.5  모델 스케줄러        → 비용 인식 (무료 우선, 단계적 업그레이드)
+V0.6  세션 시스템          → chat / ask / group 모드
+V0.7  기능 그래프          → 다중 단계 작업 분해
+V0.8  그래프 실행          → 스키마 인식 아티팩트 전달
+V0.9  교차 세션 메모리     → 프로젝트 지식 베이스
 ```
 
 ---
 
 ## ✨ 기능
 
-### 🤖 멀티 터미널 풀
-- 동일한 CLI 도구의 **여러 인스턴스**를 동시에 실행 (예: 3개의 Claude Code 터미널)
-- 각 터미널은 **독립적인 모델 선택** 가능
-- 세션 간 **영구 유지** (SQLite 기반)
+### 🤖 모델 스케줄링 (V0.1–V0.5)
 
-**지원 터미널:** `claude`, `mimo`, `opencode`, `codex`, `qcode`, `custom`
+| 기능 | 세부 사항 |
+|------|----------|
+| **5개 제공자 어댑터** | OpenAI, Anthropic, Google, DeepSeek, Ollama |
+| **15개 모델 점수화** | 각각 7가지 능력 (코딩, 아키텍처, 리뷰, 연구, 추론, 빠른 작업, 작성) |
+| **3가지 비용 프로필** | `free` (로컬 우선), `balanced` (저비용 우선), `quality` (최고 우선) |
+| **터미널 전환** | `relay use opencode` — CLI 터미널 간 즉시 전환 |
+| **자동 에스컬레이션** | 낮은 신뢰도 시 무료 → 저비용 → 프리미엄 |
 
-### 🔄 워크플로 엔진
-- **순차** 파이프라인——단계 간 템플릿 변수 해석 지원
-- 여러 터미널에서 동시 **병렬** 실행
-- YAML 정의 워크플로——코딩 불필요
+### 🧠 워커 시스템 (V0.3)
 
-### 🧠 공유 메모리
-- **에이전트 간 컨텍스트**: 각 에이전트는 이전 에이전트의 출력을 참조 가능
-- **SQLite 영속성**: 메모리가 세션을 넘어 유지됨
-- **명명된 키**: `save_as`를 통한 의미적 참조
+| 기능 | 세부 사항 |
+|------|----------|
+| **8개 기본 워커** | architect, researcher, coder, reviewer, debugger, writer, assistant, data-engineer |
+| **워커 영속성** | SQLite 기반, 재시작 후에도 유지 |
+| **워커 받은 편지함** | 작업 기반 워커 간 메시징 |
+| **포커스 뷰** | `relay focus <worker>` — 워커의 마음 속으로 SSH |
 
-### 🔗 MCP 통합
-- **모든 MCP 서버**에 연결하여 도구 사용
-- Stdio 기반 MCP 클라이언트, 타임아웃 및 오류 처리 지원
+### 💬 세션 시스템 (V0.6–V0.7)
 
-### 💰 비용 인식 라우팅 (계획 중)
-- 무료 모델 우선, 필요할 때만 유료 모델 사용
-- 정책별 라우팅 (품질 우선 vs 속도 우선 vs 비용 우선)
+| 기능 | 세부 사항 |
+|------|----------|
+| **3가지 모드** | `chat` (단일), `ask` (자동 실행), `group` (다중 워커) |
+| **기능 라우팅** | 사용한 모델이 아니라 수행 중인 작업 유형 추적 |
+| **기능 그래프** | 작업을 다중 단계 DAG로 분해 |
+| **고정 기능** | 세션이 코딩/아키텍처를 기억, 스케줄러가 모델 선택 |
+
+### 🔄 작업 그래프 실행 (V0.8)
+
+| 기능 | 세부 사항 |
+|------|----------|
+| **단계 스키마** | 입출력 계약이 있는 6가지 단계 유형 |
+| **아티팩트 전달** | 전체 텍스트가 아닌 구조화된 필드 참조 |
+| **토큰 효율성** | 스키마 없이 ~3000 대비 단계당 ~800 토큰 |
+| **재개** | 완료된 단계 건너뛰기, 실패 지점에서 계속 |
+| **비용 추정** | 실행 전 단계별 및 총 비용 표시 |
+
+### 🗄️ 교차 세션 메모리 (V0.9)
+
+| 기능 | 세부 사항 |
+|------|----------|
+| **프로젝트 지식** | 세션 간에 지식 축적 |
+| **KnowledgeCompiler** | 아티팩트에서 순수 코드 추출 |
+| **건너뛰기 명령** | 알려진 정보를 프롬프트에 주입 (재발견 불필요) |
+| **약 43% 절감** | 반복 세션에서의 효율성 |
+
+### 🖥️ 터미널 UI
+
+```
+ Workers (1-9 select)         │ Status
+                               │  Profile: balanced
+ 1 🧠 architect    ○ idle     │  Cost: $0.00
+ 2 🔍 researcher   ○ idle     │  Pending: 0
+ 3 ⭐ coder        ○ idle     │
+ 4 🎯 reviewer     ○ idle     │ Actions
+ 5 🐛 debugger     ○ idle     │  f=free  b=balanced
+                               │  o=opencode  c=claude
+═══════════════════════════════╪═══════════════════════════
+ 9w 9i 0b | inbox:0 | $0.00 | [balanced] | q=quit
+```
 
 ---
 
@@ -116,289 +140,222 @@
 pip install relayos
 ```
 
-### 초기화
+### 사용법
 
 ```bash
-relayos init
+relay             # TUI 열기 (htop 스타일 제어판)
+relay use free    # 무료 모델 우선 사용으로 전환
 ```
 
-환경 변수를 통해 API 키를 설정하세요:
+### Chat / Ask / Group
 
 ```bash
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GEMINI_API_KEY="..."
-export DEEPSEEK_API_KEY="sk-..."
+# 단일 AI 대화 (자동 라우팅)
+relay session chat "Explain Kubernetes architecture"
+
+# 다중 단계 작업 실행
+relay session ask "Build a JWT auth system in FastAPI"
+
+# 다중 워커 그룹 토론
+relay session group "Design a payment system"
 ```
 
-### 첫 번째 워크플로 실행
-
-`hello.yaml` 파일을 생성하세요:
-
-```yaml
-name: "Hello Multi-Agent"
-
-steps:
-  - agent: google
-    prompt: "List 3 interesting facts about the MCP protocol."
-    save_as: research
-
-  - agent: anthropic
-    prompt: "Based on: {{research}}\nDesign a simple architecture."
-    save_as: architecture
-```
-
-실행:
+### 터미널 즉시 전환
 
 ```bash
-relayos run hello.yaml
+relay use opencode   # 모든 작업 → OpenCode (무료)
+relay use mimo       # 모든 작업 → Mimo (무료)
+relay use claude     # 모든 작업 → Claude (프리미엄)
 ```
 
-### 터미널 관리
+### 프로젝트 지식
 
 ```bash
-# 사용 가능한 터미널 유형 확인
-relayos terminal types
+relay project create payment-system       # 프로젝트 생성
+relay project knowledge <project-id>      # 축적된 지식 표시
+relay session chat "Add refund" -p <pid>  # 프로젝트 범위의 세션
+```
 
-# 아키텍처용 Claude Code 터미널 생성
-relayos terminal create claude -n architect -m claude-sonnet-4-20250514
+### 실행 전 계획
 
-# 빠른 작업용 터미널 추가 생성
-relayos terminal create claude -n assistant -m claude-haiku-4-20251001
-
-# 연구용 Gemini 터미널 생성
-relayos terminal create google -n researcher -m gemini-2.5-flash
-
-# 실행 중인 모든 터미널 보기
-relayos terminal list
-
-# 특정 터미널에서 프롬프트 실행
-relayos terminal exec opencode "Analyze this data"
+```bash
+relay session plan "Build a payment system"
+# 표시: research(gemini free) → architecture(claude) → review(deepseek)
 ```
 
 ---
 
-## 📖 사용자 가이드
+## 🔧 CLI 참조
 
-### 워크플로
+| 명령어 | 설명 |
+|--------|------|
+| `relay` | TUI 제어판 열기 |
+| `relay session chat` | 단일 AI 대화 |
+| `relay session ask` | 작업 자동 분해 및 실행 |
+| `relay session group` | 다중 워커 그룹 토론 |
+| `relay session plan` | 실행 없이 기능 그래프 표시 |
+| `relay session list` | 최근 세션 목록 |
+| `relay use` | 기본 터미널/프로필 전환 |
+| `relay profile` | 라우팅 프로필 설정 |
+| `relay focus` | 워커 포커스 뷰 |
+| `relay team create` | 템플릿에서 팀 생성 |
+| `relay project create` | 지식 베이스용 프로젝트 생성 |
+| `relay project knowledge` | 프로젝트 지식 표시 |
+| `relay plan` | 작업 실행 계획 표시 |
+| `relay estimate` | 비용 추정 표시 |
+| `relay run` | YAML 워크플로 실행 |
+| `relay config` | 설정 마법사 |
+| `relay plugin add` | 사용자 정의 CLI 터미널 등록 |
+| `relayos serve` | 선택적 웹 대시보드 |
 
-워크플로는 멀티 에이전트 파이프라인을 정의하는 YAML 파일입니다:
+### 키보드 단축키 (TUI 내)
 
-```yaml
-name: "Pipeline Name"
-description: "What this pipeline does"
-
-vars:
-  topic: "AI safety"
-
-steps:
-  - agent: google
-    prompt: "Research {{topic}}"
-    save_as: research
-    system: "You are a research analyst."
-
-  - agent: anthropic
-    prompt: "Design based on: {{research}}"
-    save_as: design
-```
-
-| 필드 | 설명 |
-|-------|-------------|
-| `agent` | 사용할 터미널 유형 (anthropic, google, openai, opencode, deepseek) |
-| `prompt` | 보낼 프롬프트 |
-| `save_as` | 공유 메모리에 결과를 저장할 키 이름 |
-| `system` | 시스템 프롬프트 (선택 사항) |
-| `model` | 모델 재정의 (선택 사항) |
-| `parallel` | `true`로 설정하면 병렬 그룹에서 실행 |
-
-### 터미널
-
-RelayOS는 각 AI CLI를 "터미널"——독립적으로 실행되는 워커로 취급합니다:
-
-| 터미널 | 바이너리 | 기본 모델 | 상태 |
-|----------|--------|---------------|--------|
-| `claude` | `claude` | claude-sonnet-4-20250514 | ✅ 사용 가능 |
-| `mimo` | `mimo` | gpt-4o | ✅ 사용 가능 |
-| `opencode` | `opencode` | deepseek-chat | ✅ 사용 가능 |
-| `codex` | `codex` | gpt-4o | ❌ 설치되지 않음 |
-| `qcode` | `q` | qwen2.5:7b | ❌ 설치되지 않음 |
-| `custom` | (설정 가능) | 사용자 정의 | ⚡ 사용자 정의 |
-
-### 공유 메모리
-
-```bash
-# 저장
-relayos remember my_key "some value"
-
-# 검색
-relayos recall my_key
-
-# 모든 키 나열
-relayos memory-list
-```
-
----
-
-## ⚙️ 설정
-
-설정 파일 위치: `~/.relayos/config.yaml` (또는 `$RELAYOS_CONFIG_DIR/config.yaml`)
-
-```yaml
-providers:
-  openai:
-    model: gpt-4o
-  anthropic:
-    model: claude-sonnet-4-20250514
-  google:
-    model: gemini-2.5-flash
-  deepseek:
-    model: deepseek-chat
-  ollama:
-    model: qwen2.5:7b
-    base_url: http://localhost:11434
-
-terminals:
-  - name: claude-main
-    type: claude
-    model: claude-sonnet-4-20250514
-  - name: claude-fast
-    type: claude
-    model: claude-haiku-4-20251001
-  - name: mimo-coder
-    type: mimo
-    model: gpt-4o
-
-routing:
-  default: balanced
-  policies:
-    coding: free_first
-    research: quality_first
-    quick: cheapest
-```
-
-**API 키 우선순위:**
-1. 설정 파일의 `api_key` 필드
-2. 환경 변수 (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY` 등)
-3. 비어 있음 (어댑터가 경고 표시)
+| 키 | 동작 |
+|----|------|
+| `f` | 무료 프로필 |
+| `b` | 균형 프로필 |
+| `o` | OpenCode 터미널 |
+| `m` | Mimo 터미널 |
+| `c` | Claude 터미널 |
+| `1-9` | 워커 선택 |
+| `q` | 종료 |
+| `r` | 새로고침 |
 
 ---
 
 ## 🏗️ 아키텍처
 
 ```
-                    ┌─────────────────────┐
-                    │   CLI (Click)       │
-                    │  relayos run     │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   RelayOS Core    │
-                    │                      │
-                    │  ┌────────────────┐  │
-                    │  │  터미널 풀     │──│──→ Claude Code, Mimo, OpenCode...
-                    │  │  (멀티 인스턴스)│  │
-                    │  ├────────────────┤  │
-                    │  │ 워크플로 엔진  │  │
-                    │  │ (YAML 파서)    │  │
-                    │  ├────────────────┤  │
-                    │  │   스케줄러     │──│──→ 순차 / 병렬
-                    │  ├────────────────┤  │
-                    │  │   공유 메모리   │  │
-                    │  │   (SQLite)     │  │
-                    │  ├────────────────┤  │
-                    │  │    어댑터      │──│──→ OpenAI / Claude / Gemini...
-                    │  ├────────────────┤  │
-                    │  │ MCP 클라이언트  │──│──→ GitHub MCP / Filesystem MCP...
-                    │  └────────────────┘  │
-                    └──────────────────────┘
+Terminal / Pipe / TUI
+         │
+         ▼
+┌──────────────────────────────────────────────┐
+│         ConversationEngine                    │
+│  (session routing + capability detection)     │
+└──────────────────┬───────────────────────────┘
+                   │
+┌──────────────────▼───────────────────────────┐
+│           TaskGraphExecutor                   │
+│  (schema-aware, artifact-passing, DAG exec)   │
+└──────────────────┬───────────────────────────┘
+                   │
+┌──────────────────▼───────────────────────────┐
+│         ModelScheduler                        │
+│  (15 models × 7 capabilities, cost-aware)     │
+└──────┬───────────────────────┬───────────────┘
+       │                       │
+┌──────▼──────┐       ┌───────▼──────────┐
+│  Adapters   │       │  Knowledge Base   │
+│  (5 prov.)  │       │  (SQLite, proj.)  │
+└─────────────┘       └──────────────────┘
 ```
 
-### 설계 결정
+### 핵심 모듈
 
-| 결정 | 선택 | 이유 |
-|----------|--------|-----------|
-| CLI 우선 | Click + YAML | 코드 없는 워크플로; 비개발자도 파이프라인 생성 가능 |
-| 멀티 인스턴스 | 스레드 풀 | 여러 모델에서 동시에 에이전트 실행 |
-| 영속성 | SQLite | 외부 종속성 없는 세션 간 메모리 |
-| 어댑터 | httpx 기반 | 최소 종속성; 프로바이더 SDK 불필요 |
-| MCP | 클라이언트 전용 (v0.1) | MCP 서버 활용; v1.0에서 Hub 모드 |
+| 모듈 | 역할 |
+|------|------|
+| `relayos/core/scheduler.py` | 15개 모델 비용 인식 스케줄러 |
+| `relayos/core/session.py` | 세션 라이프사이클 + 메시지 |
+| `relayos/core/conversation.py` | Chat/Ask/Group 엔진 |
+| `relayos/core/planner.py` | 기능 그래프 + 실행 |
+| `relayos/core/knowledge.py` | 교차 세션 프로젝트 메모리 |
+| `relayos/core/state.py` | 구조화된 상태 저장소 |
+| `relayos/core/schemas.py` | 단계 입출력 계약 |
+| `relayos/core/artifacts.py` | 구조화된 아티팩트 저장소 |
+| `relayos/tui/app.py` | 키보드 구동 TUI |
 
----
+### 저장소 (모두 로컬 SQLite, 인프라 제로)
 
-## 📁 예제
-
-| 예제 | 설명 |
-|---------|-------------|
-| `examples/saas-builder.yaml` | 4-에이전트 SaaS 설계 파이프라인: Gemini 연구 → Claude 설계 → GPT 코딩 → DeepSeek 검토 |
-| `examples/linguagraph-research.yaml` | 3-에이전트 연구 파이프라인: 언어 분석 → 인지 모델 → 논문 작성 |
-| `examples/debate.yaml` | 3-에이전트 토론: 로컬 vs 클라우드 LLM, Gemini가 평가 |
-| `examples/parallel-research.yaml` | 종합 분석이 포함된 4-에이전트 병렬 연구 스프린트 |
+```
+~/.relayos/
+├── config.yaml        # 사용자 설정
+├── state.db           # 프로젝트 상태 + 결정 + 이벤트
+├── sessions.db        # 세션 기록 + 메시지
+├── knowledge.db       # 교차 세션 프로젝트 지식
+├── artifacts.db       # 구조화된 단계 출력
+└── workers.db         # 영구적 워커 정의
+```
 
 ---
 
 ## 🛣️ 로드맵
 
-- **v0.1** — ✅ CLI, YAML 워크플로, 5개 어댑터, 공유 메모리, MCP 클라이언트, 터미널 풀
-- **v0.2** — 🔄 웹 대시보드 (Next.js), 워크플로 시각화, 비용 인식 라우팅, Docker
-- **v0.5** — 🔄 LangGraph 오케스트레이션, 조건부 분기, Human-in-the-loop
-- **v1.0** — 🔄 양방향 MCP Hub, 플러그인 시스템, 벡터 메모리
+### 완료 (V0.1–V0.9)
+
+| 버전 | 핵심 기능 | 상태 |
+|------|----------|------|
+| V0.1 | 모델 라우팅 (5개 어댑터, YAML 워크플로) | ✅ |
+| V0.2 | 터미널 풀 (다중 CLI, 비용 추적) | ✅ |
+| V0.3 | 워커 시스템 (8개 역할, 영속성, TUI) | ✅ |
+| V0.4 | 상태 컴파일러 (구조화된 상태, 이벤트 소싱) | ✅ |
+| V0.5 | 모델 스케줄러 (15개 모델, 3개 비용 프로필) | ✅ |
+| V0.6 | 세션 시스템 (chat/ask/group 모드) | ✅ |
+| V0.7 | 기능 그래프 (다중 단계 작업 분해) | ✅ |
+| V0.8 | 작업 그래프 실행 (스키마 인식 아티팩트 전달) | ✅ |
+| V0.9 | 교차 세션 메모리 (프로젝트 지식 베이스) | ✅ |
+
+### 계획됨
+
+- **V1.0** — 플러그인 생태계, MCP 라우터, 분산 워커
+- **V1.1** — 워크플로 재생 (LangSmith 스타일 타임라인)
+- **V1.2** — 다중 머신 워커 풀
 
 ---
 
-## 🙏 감사의 말
+## 🙏 Credits
 
-RelayOS는 거인의 어깨 위에 서 있습니다. 다음 프로젝트에 깊은 감사를 드립니다:
+### 🖥️ Terminal Platforms
 
-### 🖥️ 터미널 플랫폼
-
-| 플랫폼 | 감사의 말 |
+| Platform | Credit |
 |----------|--------|
-| **[Claude Code](https://claude.ai)** — Anthropic 제공 | 주요 개발 플랫폼. RelayOS는 Claude Code의 에이전트 오케스트레이션 기능을 사용하여 설계 및 구축되었습니다. [약관](https://www.anthropic.com/legal) · [개인정보](https://www.anthropic.com/privacy) |
-| **[OpenCode](https://opencode.ai)** | 터미널 어댑터 대상 및 테스트 파트너. OpenCode CLI는 RelayOS의 터미널 풀이 사용하는 실행 인터페이스를 제공합니다. |
-| **[MimoCode](https://mimo.ai)** | 터미널 어댑터 대상. Mimo의 CLI 통합은 멀티 모델 프론트엔드 워크플로를 가능하게 합니다. |
-| **OpenAI Codex** | 코딩 작업을 위한 터미널 어댑터 대상. |
+| **[Claude Code](https://claude.ai)** — Powered by Anthropic | Primary development platform. [Terms](https://www.anthropic.com/legal) |
+| **[OpenCode](https://opencode.ai)** | Terminal adapter target and testing partner |
+| **[MimoCode](https://mimo.ai)** | Terminal adapter for multi-model frontend workflows |
+| **OpenAI Codex** | Terminal adapter for coding tasks |
 
-### 🤖 개발에 사용된 AI 모델
+### 🤖 Models Used
 
-- **Claude Opus 4.8 / Sonnet 4.6** (Anthropic) — 주요 개발 모델
-- **Gemini 2.5 Flash** (Google) — 연구 작업, 경쟁 분석
-- **GPT-4o** (OpenAI) — 아키텍처 평가 및 검토
-- **DeepSeek V3** (DeepSeek) — 코드 리뷰 및 테스트
+- **Claude Opus 4.8 / Sonnet 4.6** (Anthropic) — Primary development models
+- **Gemini 2.5 Flash** (Google) — Research tasks, competitive analysis
+- **GPT-4o** (OpenAI) — Architecture evaluation and review
+- **DeepSeek V3** (DeepSeek) — Code review and testing
 
-### 📦 오픈소스 의존성
+### 📦 Dependencies
 
-| 의존성 | 라이선스 | 용도 |
-|------------|---------|---------|
-| [Click](https://palletsprojects.com/p/click/) | BSD-3-Clause | CLI 프레임워크 |
-| [PyYAML](https://pyyaml.org/) | MIT | YAML 파싱 |
-| [HTTPX](https://www.python-httpx.org/) | BSD-3-Clause | 모델 API용 HTTP 클라이언트 |
-| [pydantic](https://docs.pydantic.dev/) (계획 중) | MIT | 설정 검증 (v0.2) |
+| Library | License | Purpose |
+|---------|---------|---------|
+| [Click](https://palletsprojects.com/p/click/) | BSD-3-Clause | CLI framework |
+| [PyYAML](https://pyyaml.org/) | MIT | YAML parsing |
+| [HTTPX](https://www.python-httpx.org/) | BSD-3-Clause | HTTP client for model APIs |
+| [Rich](https://rich.readthedocs.io/) | MIT | Terminal UI rendering |
 
-### 🧠 스킬 및 지식 출처
+### 🌍 Translations
 
-- **ECC (Engineering Claude Code)** 플러그인 시스템 — 에이전트 오케스트레이션 패턴
-- **Claude Scholar** — 학술 연구 워크플로 패턴
-- **MCP (Model Context Protocol)** — Anthropic의 도구 통합 프로토콜
-
-### 🌍 커뮤니티 번역
-
-RelayOS README는 다음 언어로 제공됩니다:
+- [English](README.md)
 - [中文 (Chinese)](README_ZH.md)
 - [Deutsch (German)](README_DE.md)
 - [Français (French)](README_FR.md)
 - [Español (Spanish)](README_ES.md)
 - [日本語 (Japanese)](README_JP.md)
-- [한국어 (Korean)](README_KR.md)
 
 ---
 
-## 📄 라이선스
+## 📦 Publishing
 
-[Apache 2.0](LICENSE) Copyright 2026 [jjjjjjjjnnjnn](https://github.com/jjjjjjjjnnjnn)
+Releases are automated via GitHub Actions. To publish a new version:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+# Triggers .github/workflows/publish.yml → auto-builds → PyPI
+```
+
+**Install:** `pip install relayos`
+**Source:** [github.com/jjjjjjjjnnjnn/relayos](https://github.com/jjjjjjjjnnjnn/relayos)
+**License:** [Apache 2.0](LICENSE)
 
 ---
 
 <p align="center">
-  <strong>RelayOS</strong> — AI 에이전트를 위한 조정 레이어.<br>
-  <sub>오픈소스 AI 커뮤니티를 위해 ❤️를 담아</sub>
+  <strong>RelayOS</strong> — Persistent AI Workers for Developers.<br>
+  <sub>Like htop for your AI team. No Docker, no server, no browser needed.</sub>
 </p>

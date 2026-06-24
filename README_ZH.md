@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <picture>
     <img src="https://img.shields.io/badge/RelayOS-v0.1.0a1-8B5CF6?style=for-the-badge" alt="RelayOS">
   </picture>
@@ -7,18 +7,18 @@
 <h1 align="center">RelayOS</h1>
 
 <p align="center">
-  <strong>告别在 AI 工具之间复制粘贴。</strong><br>
-  在 Claude、GPT、Gemini、DeepSeek 和本地模型之间创建持久的 AI 工作线程——<br>
-  配备共享内存、工作流编排和 MCP 集成。
+  <strong>为开发者打造的持久化 AI 工作进程。</strong><br>
+  一个终端原生的 AI 执行运行时 —— 将任务路由至 Claude、GPT、Gemini、DeepSeek 及本地模型，<br>
+  支持能力感知调度、共享项目记忆与多步执行图。
 </p>
 
 <p align="center">
-  <a href="#-快速开始"><img src="https://img.shields.io/badge/-快速开始-10B981?style=flat-square" alt="快速开始"></a>
-  <a href="#-功能特性"><img src="https://img.shields.io/badge/-功能特性-3B82F6?style=flat-square" alt="功能特性"></a>
-  <a href="#%EF%B8%8F-配置"><img src="https://img.shields.io/badge/-配置-8B5CF6?style=flat-square" alt="配置"></a>
-  <a href="#-示例"><img src="https://img.shields.io/badge/-示例-F59E0B?style=flat-square" alt="示例"></a>
-  <a href="#%EF%B8%8F-架构"><img src="https://img.shields.io/badge/-架构-EC4899?style=flat-square" alt="架构"></a>
-  <a href="#%EF%B8%8F-致谢"><img src="https://img.shields.io/badge/-致谢-6366F1?style=flat-square" alt="致谢"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/-Quick_Start-10B981?style=flat-square" alt="快速开始"></a>
+  <a href="#-features"><img src="https://img.shields.io/badge/-Features-3B82F6?style=flat-square" alt="功能特性"></a>
+  <a href="#-cli-reference"><img src="https://img.shields.io/badge/-CLI_Reference-8B5CF6?style=flat-square" alt="CLI 参考"></a>
+  <a href="#%EF%B8%8F-architecture"><img src="https://img.shields.io/badge/-Architecture-EC4899?style=flat-square" alt="架构"></a>
+  <a href="#%EF%B8%8F-credits"><img src="https://img.shields.io/badge/-Credits-6366F1?style=flat-square" alt="致谢"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/English-Doc-FFFFFF?style=flat-square" alt="English"></a>
   <a href="README_ZH.md"><img src="https://img.shields.io/badge/中文-文档-EA4335?style=flat-square" alt="中文"></a>
   <a href="README_DE.md"><img src="https://img.shields.io/badge/Deutsch-Dokument-FFD700?style=flat-square" alt="Deutsch"></a>
   <a href="README_ES.md"><img src="https://img.shields.io/badge/Español-Doc-00C853?style=flat-square" alt="Español"></a>
@@ -31,79 +31,104 @@
 
 ## 📋 目录
 
-| 章节 | 说明 |
+| 章节 | 描述 |
 |---------|-------------|
-| [🎯 概述](#-概述) | RelayOS 是什么以及为何存在 |
-| [✨ 功能特性](#-功能特性) | 当前能力 |
-| [⚡ 快速开始](#-快速开始) | 安装并运行你的第一个工作流 |
-| [📖 使用指南](#-使用指南) | 工作流、终端、内存 |
-| [⚙️ 配置](#%EF%B8%8F-配置) | 提供商、终端、路由 |
-| [🏗️ 架构](#%EF%B8%8F-架构) | 系统设计 |
-| [📁 示例](#-示例) | 可直接使用的工作流 |
-| [🛣️ 路线图](#%EF%B8%8F-路线图) | 未来规划 |
-| [🙏 致谢](#%EF%B8%8F-致谢) | 鸣谢 |
-| [📄 许可证](#-许可证) | Apache 2.0 |
+| [🎯 概述](#-overview) | RelayOS 是什么以及为何存在 |
+| [✨ 功能特性](#-features) | 所有能力 (V0.1–V0.9) |
+| [⚡ 快速开始](#-quick-start) | 安装与启动 |
+| [🔧 CLI 参考](#-cli-reference) | 全部 22 个命令 |
+| [🏗️ 架构](#%EF%B8%8F-architecture) | 系统设计 |
+| [🛣️ 路线图](#%EF%B8%8F-roadmap) | 版本历史与未来规划 |
+| [🙏 致谢](#%EF%B8%8F-credits) | 鸣谢 |
+| [📄 许可](#-license) | Apache 2.0 |
 
 ---
 
 ## 🎯 概述
 
-**RelayOS** 是一个面向 AI 智能体的开源协调层——就像 Docker 之于容器，但服务于 AI 工具。
+**RelayOS** 是一个终端原生的 AI 执行运行时。就像是你的 AI 团队的 htop。
 
-### 问题
+你拥有多种 AI 工具（Claude Code、ChatGPT、Gemini、DeepSeek、本地模型）。每个都很出色，但它们彼此之间无法沟通。RelayOS 就是那个协调层——它将任务路由到正确的模型、跨会话记住项目上下文、并执行多步骤计划——全部在终端中完成，零基础设施。
 
-你使用 **Claude Code** 做架构设计，**ChatGPT** 做推理，**Gemini** 做研究，**DeepSeek** 写代码。每个工具都很出色，但 **它们之间无法互通。** 你浪费了 30% 的时间在不同工具之间复制粘贴上下文，并用高价模型处理免费模型就能完成的任务。
-
-### 解决方案
+### 演进路线
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   你的 AI 工具                         │
-│   Claude Code    ChatGPT    Gemini    DeepSeek       │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│                   RelayOS                        │
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │   终端池     │  │  工作流引擎  │  │   共享内存   │  │
-│  │ (多 CLI)    │  │  (YAML)     │  │  (SQLite)   │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  │
-│  ┌─────────────┐  ┌─────────────┐                    │
-│  │   适配器     │  │ MCP 客户端  │                    │
-│  │ (5 提供商)  │  │  (工具)     │                    │
-│  └─────────────┘  └─────────────┘                    │
-└──────────────────────────────────────────────────────┘
+V0.1  模型路由          → 选择合适的模型
+V0.2  终端池            → 管理 CLI 工作进程
+V0.3  工作进程系统       → 持久化的 AI 团队成员
+V0.4  状态编译器         → 结构化状态，而非聊天历史
+V0.5  模型调度器         → 成本感知（先用免费的，逐步升级）
+V0.6  会话系统           → chat / ask / group 模式
+V0.7  能力图             → 多步骤任务分解
+V0.8  图执行             → 模式感知的工件传递
+V0.9  跨会话记忆         → 项目知识库
 ```
 
 ---
 
 ## ✨ 功能特性
 
-### 🤖 多终端池
-- 在同一 CLI 工具中**同时运行多个实例**（例如 3 个 Claude Code 终端）
-- 每个终端拥有**独立的模型选择**
-- 跨会话**持久化**（基于 SQLite）
+### 🤖 模型调度 (V0.1–V0.5)
 
-**支持的终端：** `claude`、`mimo`、`opencode`、`codex`、`qcode`、`custom`
+| 特性 | 详情 |
+|---------|--------|
+| **5 个提供商适配器** | OpenAI、Anthropic、Google、DeepSeek、Ollama |
+| **15 个模型评分** | 每模型 7 项能力（编码、架构、审查、研究、推理、快速、写作） |
+| **3 种成本配置** | `free`（本地优先）、`balanced`（廉价优先）、`quality`（最优优先） |
+| **终端切换** | `relay use opencode` —— 在 CLI 终端间即时切换 |
+| **自动升级** | 低置信度时：免费 → 廉价 → 高级 |
 
-### 🔄 工作流引擎
-- **顺序**管道——步骤之间支持模板变量解析
-- **并行**执行——在多个终端上同时运行
-- YAML 定义的工作流——无需编写代码
+### 🧠 工作进程系统 (V0.3)
 
-### 🧠 共享内存
-- **跨智能体上下文**：每个智能体可以看到前序智能体的输出
-- **SQLite 持久化**：内存数据跨会话保留
-- **命名键**：使用 `save_as` 进行语义引用
+| 特性 | 详情 |
+|---------|--------|
+| **8 个默认工作进程** | architect、researcher、coder、reviewer、debugger、writer、assistant、data-engineer |
+| **工作进程持久化** | 基于 SQLite，重启后依然存在 |
+| **工作进程收件箱** | 基于任务的工作进程间消息传递 |
+| **聚焦视图** | `relay focus <worker>` —— SSH 进入一个工作进程的"大脑" |
 
-### 🔗 MCP 集成
-- 连接**任意 MCP 服务器**以获取工具
-- 基于标准输入的 MCP 客户端，支持超时和错误处理
+### 💬 会话系统 (V0.6–V0.7)
 
-### 💰 成本感知路由（规划中）
-- 优先使用免费模型，仅在必要时使用付费模型
-- 按策略路由（质量优先 vs 速度优先 vs 成本优先）
+| 特性 | 详情 |
+|---------|--------|
+| **3 种模式** | `chat`（单轮）、`ask`（自动执行）、`group`（多工作进程） |
+| **能力路由** | 追踪你正在做的任务类型，而非你用的模型 |
+| **能力图** | 将任务分解为多步骤 DAG |
+| **粘性能力** | 会话记住编码/架构任务，调度器选择模型 |
+
+### 🔄 任务图执行 (V0.8)
+
+| 特性 | 详情 |
+|---------|--------|
+| **步骤模式** | 6 种步骤类型，带输入/输出契约 |
+| **工件传递** | 结构化字段引用，而非完整文本 |
+| **Token 效率** | 约 800 tokens/步，无模式时约 3000 |
+| **断点续传** | 跳过已完成步骤，从失败处继续 |
+| **成本估算** | 执行前显示每一步和总成本 |
+
+### 🗄️ 跨会话记忆 (V0.9)
+
+| 特性 | 详情 |
+|---------|--------|
+| **项目知识** | 知识跨会话积累 |
+| **KnowledgeCompiler** | 从工件中提取纯代码知识 |
+| **跳过指令** | 已知信息注入提示词（无需重新发现） |
+| **节约约 43%** | 重复会话场景 |
+
+### 🖥️ 终端 UI
+
+```
+ Workers (1-9 select)         │ Status
+                               │  Profile: balanced
+ 1 🧠 architect    ○ idle     │  Cost: $0.00
+ 2 🔍 researcher   ○ idle     │  Pending: 0
+ 3 ⭐ coder        ○ idle     │
+ 4 🎯 reviewer     ○ idle     │ Actions
+ 5 🐛 debugger     ○ idle     │  f=free  b=balanced
+                               │  o=opencode  c=claude
+═══════════════════════════════╪═══════════════════════════
+ 9w 9i 0b | inbox:0 | $0.00 | [balanced] | q=quit
+```
 
 ---
 
@@ -115,274 +140,198 @@
 pip install relayos
 ```
 
-### 初始化
+### 使用
 
 ```bash
-relayos init
+relay             # 打开 TUI（htop 风格的控制面板）
+relay use free    # 切换为优先使用免费模型
 ```
 
-通过环境变量配置 API 密钥：
+### Chat / Ask / Group
 
 ```bash
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GEMINI_API_KEY="..."
-export DEEPSEEK_API_KEY="sk-..."
+# 单 AI 对话（自动路由）
+relay session chat "Explain Kubernetes architecture"
+
+# 多步骤任务执行
+relay session ask "Build a JWT auth system in FastAPI"
+
+# 多工作进程小组讨论
+relay session group "Design a payment system"
 ```
 
-### 运行你的第一个工作流
-
-创建文件 `hello.yaml`:
-
-```yaml
-name: "Hello Multi-Agent"
-
-steps:
-  - agent: google
-    prompt: "List 3 interesting facts about the MCP protocol."
-    save_as: research
-
-  - agent: anthropic
-    prompt: "Based on: {{research}}\nDesign a simple architecture."
-    save_as: architecture
-```
-
-执行它：
+### 即时切换终端
 
 ```bash
-relayos run hello.yaml
+relay use opencode   # 所有任务 → OpenCode（免费）
+relay use mimo       # 所有任务 → Mimo（免费）
+relay use claude     # 所有任务 → Claude（高级）
 ```
 
-### 管理终端
+### 项目知识
 
 ```bash
-# 查看可用终端类型
-relayos terminal types
+relay project create payment-system       # 创建项目
+relay project knowledge <project-id>      # 查看已积累的知识
+relay session chat "Add refund" -p <pid>  # 将会话限定到项目范围
+```
 
-# 创建一个用于架构设计的 Claude Code 终端
-relayos terminal create claude -n architect -m claude-sonnet-4-20250514
+### 执行前先规划
 
-# 再创建一个用于快速任务的终端
-relayos terminal create claude -n assistant -m claude-haiku-4-20251001
-
-# 创建一个用于研究的 Gemini 终端
-relayos terminal create google -n researcher -m gemini-2.5-flash
-
-# 查看所有运行中的终端
-relayos terminal list
-
-# 在指定终端上运行提示
-relayos terminal exec opencode "Analyze this data"
+```bash
+relay session plan "Build a payment system"
+# Shows: research(gemini free) → architecture(claude) → review(deepseek)
 ```
 
 ---
 
-## 📖 使用指南
+## 🔧 CLI 参考
 
-### 工作流
+| 命令 | 描述 |
+|---------|-------------|
+| `relay` | 打开 TUI 控制面板 |
+| `relay session chat` | 单 AI 对话 |
+| `relay session ask` | 自动分解并执行任务 |
+| `relay session group` | 多工作进程小组讨论 |
+| `relay session plan` | 显示能力图（不执行） |
+| `relay session list` | 列出最近的会话 |
+| `relay use` | 切换默认终端/配置 |
+| `relay profile` | 设置路由配置 |
+| `relay focus` | 工作进程聚焦视图 |
+| `relay team create` | 从模板创建团队 |
+| `relay project create` | 创建项目知识库 |
+| `relay project knowledge` | 查看项目知识 |
+| `relay plan` | 显示任务的执行计划 |
+| `relay estimate` | 显示成本估算 |
+| `relay run` | 运行 YAML 工作流 |
+| `relay config` | 配置向导 |
+| `relay plugin add` | 注册自定义 CLI 终端 |
+| `relayos serve` | 可选的 Web 仪表盘 |
 
-工作流是定义多智能体管道的 YAML 文件：
+### 键盘快捷键（TUI 中）
 
-```yaml
-name: "Pipeline Name"
-description: "What this pipeline does"
-
-vars:
-  topic: "AI safety"
-
-steps:
-  - agent: google
-    prompt: "Research {{topic}}"
-    save_as: research
-    system: "You are a research analyst."
-
-  - agent: anthropic
-    prompt: "Design based on: {{research}}"
-    save_as: design
-```
-
-| 字段 | 说明 |
-|-------|-------------|
-| `agent` | 使用的终端类型（claude、gemini、gpt、opencode、deepseek） |
-| `prompt` | 要发送的提示内容 |
-| `save_as` | 将结果存入共享内存的键名 |
-| `system` | 系统提示（可选） |
-| `model` | 模型覆盖（可选） |
-| `parallel` | 设为 `true` 以在并行组中运行此步骤 |
-
-### 终端
-
-RelayOS 将每个 AI CLI 视为一个"终端"——独立运行的工作线程：
-
-| 终端 | 二进制 | 默认模型 | 状态 |
-|----------|--------|---------------|--------|
-| `claude` | `claude` | claude-sonnet-4-20250514 | ✅ 可用 |
-| `mimo` | `mimo` | gpt-4o | ✅ 可用 |
-| `opencode` | `opencode` | deepseek-chat | ✅ 可用 |
-| `codex` | `codex` | gpt-4o | ❌ 未安装 |
-| `qcode` | `q` | qwen2.5:7b | ❌ 未安装 |
-| `custom` | (可配置) | 用户自定义 | ⚡ 自定义 |
-
-### 共享内存
-
-```bash
-# 存储
-relayos remember my_key "some value"
-
-# 检索
-relayos recall my_key
-
-# 列出所有键
-relayos memory-list
-```
-
----
-
-## ⚙️ 配置
-
-配置文件位置：`~/.relayos/config.yaml`（或 `$RELAYOS_CONFIG_DIR/config.yaml`）
-
-```yaml
-providers:
-  openai:
-    model: gpt-4o
-  anthropic:
-    model: claude-sonnet-4-20250514
-  google:
-    model: gemini-2.5-flash
-  deepseek:
-    model: deepseek-chat
-  ollama:
-    model: qwen2.5:7b
-    base_url: http://localhost:11434
-
-terminals:
-  - name: claude-main
-    type: claude
-    model: claude-sonnet-4-20250514
-  - name: claude-fast
-    type: claude
-    model: claude-haiku-4-20251001
-  - name: mimo-coder
-    type: mimo
-    model: gpt-4o
-
-routing:
-  default: balanced
-  policies:
-    coding: free_first
-    research: quality_first
-    quick: cheapest
-```
-
-**API 密钥优先级：**
-1. 配置文件中的 `api_key` 字段
-2. 环境变量（`OPENAI_API_KEY`、`ANTHROPIC_API_KEY` 等）
-3. 空值（适配器会发出警告）
+| 按键 | 操作 |
+|-----|--------|
+| `f` | 免费模式 |
+| `b` | 均衡模式 |
+| `o` | OpenCode 终端 |
+| `m` | Mimo 终端 |
+| `c` | Claude 终端 |
+| `1-9` | 选择工作进程 |
+| `q` | 退出 |
+| `r` | 刷新 |
 
 ---
 
 ## 🏗️ 架构
 
 ```
-                    ┌─────────────────────┐
-                    │   CLI (Click)       │
-                    │  relayos run     │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   RelayOS Core    │
-                    │                      │
-                    │  ┌────────────────┐  │
-                    │  │   终端池         │──│──→ Claude Code, Mimo, OpenCode...
-                    │  │  (多实例)       │  │
-                    │  ├────────────────┤  │
-                    │  │  工作流引擎      │  │
-                    │  │  (YAML 解析器)  │  │
-                    │  ├────────────────┤  │
-                    │  │   调度器         │──│──→ 顺序 / 并行
-                    │  ├────────────────┤  │
-                    │  │   共享内存       │  │
-                    │  │   (SQLite)      │  │
-                    │  ├────────────────┤  │
-                    │  │    适配器        │──│──→ OpenAI / Claude / Gemini...
-                    │  ├────────────────┤  │
-                    │  │  MCP 客户端     │──│──→ GitHub MCP / Filesystem MCP...
-                    │  └────────────────┘  │
-                    └──────────────────────┘
+Terminal / Pipe / TUI
+         │
+         ▼
+┌──────────────────────────────────────────────┐
+│         ConversationEngine                    │
+│  (session routing + capability detection)     │
+└──────────────────┬───────────────────────────┘
+                   │
+┌──────────────────▼───────────────────────────┐
+│           TaskGraphExecutor                   │
+│  (schema-aware, artifact-passing, DAG exec)   │
+└──────────────────┬───────────────────────────┘
+                   │
+┌──────────────────▼───────────────────────────┐
+│         ModelScheduler                        │
+│  (15 models × 7 capabilities, cost-aware)     │
+└──────┬───────────────────────┬───────────────┘
+       │                       │
+┌──────▼──────┐       ┌───────▼──────────┐
+│  Adapters   │       │  Knowledge Base   │
+│  (5 prov.)  │       │  (SQLite, proj.)  │
+└─────────────┘       └──────────────────┘
 ```
 
-### 设计决策
+### 核心模块
 
-| 决策 | 选择 | 理由 |
-|----------|--------|-----------|
-| CLI 优先 | Click + YAML | 零代码工作流；非开发人员也能创建管道 |
-| 多实例 | 线程池 | 在多个模型上同时运行智能体 |
-| 持久化 | SQLite | 跨会话内存，无需外部依赖 |
-| 适配器 | 基于 httpx | 最小化依赖；无需提供商 SDK |
-| MCP | 仅客户端（v0.1） | 消费 MCP 服务器；v1.0 支持 Hub 模式 |
+| 模块 | 角色 |
+|--------|------|
+| `relayos/core/scheduler.py` | 15 模型成本感知调度器 |
+| `relayos/core/session.py` | 会话生命周期 + 消息 |
+| `relayos/core/conversation.py` | Chat/ask/group 引擎 |
+| `relayos/core/planner.py` | 能力图 + 执行 |
+| `relayos/core/knowledge.py` | 跨会话项目记忆 |
+| `relayos/core/state.py` | 结构化状态存储 |
+| `relayos/core/schemas.py` | 步骤输入/输出契约 |
+| `relayos/core/artifacts.py` | 结构化工件存储 |
+| `relayos/tui/app.py` | 键盘驱动的 TUI |
 
----
+### 存储（全部本地 SQLite，零基础设施）
 
-## 📁 示例
-
-| 示例 | 说明 |
-|---------|-------------|
-| `examples/saas-builder.yaml` | 4 智能体 SaaS 设计管道：Gemini 研究 → Claude 设计 → GPT 编码 → DeepSeek 审查 |
-| `examples/linguagraph-research.yaml` | 3 智能体研究管道：语言分析 → 认知模型 → 论文撰写 |
-| `examples/debate.yaml` | 3 智能体辩论：本地 vs 云端 LLM，由 Gemini 评判 |
-| `examples/parallel-research.yaml` | 4 智能体并行研究冲刺，带综合汇总 |
+```
+~/.relayos/
+├── config.yaml        # 用户配置
+├── state.db           # 项目状态 + 决策 + 事件
+├── sessions.db        # 会话历史 + 消息
+├── knowledge.db       # 跨会话项目知识
+├── artifacts.db       # 结构化步骤输出
+└── workers.db         # 持久化工作进程定义
+```
 
 ---
 
 ## 🛣️ 路线图
 
-- **v0.1** — ✅ CLI、YAML 工作流、5 个适配器、共享内存、MCP 客户端、终端池
-- **v0.2** — 🔄 Web 仪表盘（Next.js）、工作流可视化、成本感知路由、Docker
-- **v0.5** — 🔄 LangGraph 编排、条件分支、人工参与（Human-in-the-loop）
-- **v1.0** — 🔄 双向 MCP Hub、插件系统、向量内存
+### 已完成 (V0.1–V0.9)
+
+| 版本 | 核心特性 | 状态 |
+|---------|-------------|--------|
+| V0.1 | 模型路由（5 个适配器，YAML 工作流） | ✅ |
+| V0.2 | 终端池（多 CLI，成本追踪） | ✅ |
+| V0.3 | 工作进程系统（8 种角色，持久化，TUI） | ✅ |
+| V0.4 | 状态编译器（结构化状态，事件溯源） | ✅ |
+| V0.5 | 模型调度器（15 个模型，3 种成本配置） | ✅ |
+| V0.6 | 会话系统（chat/ask/group 模式） | ✅ |
+| V0.7 | 能力图（多步骤任务分解） | ✅ |
+| V0.8 | 任务图执行（模式感知工件传递） | ✅ |
+| V0.9 | 跨会话记忆（项目知识库） | ✅ |
+
+### 规划中
+
+- **V1.0** — 插件生态、MCP 路由器、分布式工作进程
+- **V1.1** — 工作流回放（LangSmith 风格时间线）
+- **V1.2** — 多机器工作进程池
 
 ---
 
-## 🙏 致谢
+## 🙏 Credits
 
-RelayOS 站在巨人的肩膀上。我们向以下项目致以最深切的感谢：
+### 🖥️ Terminal Platforms
 
-### 🖥️ 终端平台
-
-| 平台 | 致谢 |
+| Platform | Credit |
 |----------|--------|
-| **[Claude Code](https://claude.ai)** — 由 Anthropic 提供支持 | 主要开发平台。RelayOS 使用 Claude Code 的智能体编排能力进行设计和构建。[条款](https://www.anthropic.com/legal) · [隐私](https://www.anthropic.com/privacy) |
-| **[OpenCode](https://opencode.ai)** | 终端适配器目标和测试伙伴。OpenCode CLI 提供 RelayOS 终端池使用的运行接口。 |
-| **[MimoCode](https://mimo.ai)** | 终端适配器目标。Mimo 的 CLI 集成支持多模型前端工作流。 |
-| **OpenAI Codex** | 编码类任务的终端适配器目标。 |
+| **[Claude Code](https://claude.ai)** — Powered by Anthropic | Primary development platform. [Terms](https://www.anthropic.com/legal) |
+| **[OpenCode](https://opencode.ai)** | Terminal adapter target and testing partner |
+| **[MimoCode](https://mimo.ai)** | Terminal adapter for multi-model frontend workflows |
+| **OpenAI Codex** | Terminal adapter for coding tasks |
 
-### 🤖 开发中使用的 AI 模型
+### 🤖 Models Used
 
-- **Claude Opus 4.8 / Sonnet 4.6**（Anthropic）— 主要开发模型
-- **Gemini 2.5 Flash**（Google）— 研究任务、竞品分析
-- **GPT-4o**（OpenAI）— 架构评估与审查
-- **DeepSeek V3**（DeepSeek）— 代码审查与测试
+- **Claude Opus 4.8 / Sonnet 4.6** (Anthropic) — Primary development models
+- **Gemini 2.5 Flash** (Google) — Research tasks, competitive analysis
+- **GPT-4o** (OpenAI) — Architecture evaluation and review
+- **DeepSeek V3** (DeepSeek) — Code review and testing
 
-### 📦 开源依赖
+### 📦 Dependencies
 
-| 依赖 | 许可证 | 用途 |
-|------------|---------|---------|
-| [Click](https://palletsprojects.com/p/click/) | BSD-3-Clause | CLI 框架 |
-| [PyYAML](https://pyyaml.org/) | MIT | YAML 解析 |
-| [HTTPX](https://www.python-httpx.org/) | BSD-3-Clause | 模型 API 的 HTTP 客户端 |
-| [pydantic](https://docs.pydantic.dev/)（规划中） | MIT | 配置验证（v0.2） |
+| Library | License | Purpose |
+|---------|---------|---------|
+| [Click](https://palletsprojects.com/p/click/) | BSD-3-Clause | CLI framework |
+| [PyYAML](https://pyyaml.org/) | MIT | YAML parsing |
+| [HTTPX](https://www.python-httpx.org/) | BSD-3-Clause | HTTP client for model APIs |
+| [Rich](https://rich.readthedocs.io/) | MIT | Terminal UI rendering |
 
-### 🧠 技能与知识来源
+### 🌍 Translations
 
-- **ECC（Engineering Claude Code）** 插件系统——智能体编排模式
-- **Claude Scholar**——学术研究工作流模式
-- **MCP（Model Context Protocol）**——Anthropic 的工具集成协议
-
-### 🌍 社区翻译
-
-RelayOS README 提供以下语言版本：
-- [中文 (Chinese)](README_ZH.md)
+- [English](README.md)
 - [Deutsch (German)](README_DE.md)
 - [Français (French)](README_FR.md)
 - [Español (Spanish)](README_ES.md)
@@ -391,13 +340,22 @@ RelayOS README 提供以下语言版本：
 
 ---
 
-## 📄 许可证
+## 📦 Publishing
 
-[Apache 2.0](LICENSE) Copyright 2026 [jjjjjjjjnnjnn](https://github.com/jjjjjjjjnnjnn)
+Releases are automated via GitHub Actions. To publish a new version:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+# Triggers .github/workflows/publish.yml → auto-builds → PyPI
+```
+
+**Install:** `pip install relayos`
+**Source:** [github.com/jjjjjjjjnnjnn/relayos](https://github.com/jjjjjjjjnnjnn/relayos)
+**License:** [Apache 2.0](LICENSE)
 
 ---
 
 <p align="center">
-  <strong>RelayOS</strong> — AI 智能体的协调层。<br>
-  <sub>为开源 AI 社区用心打造 ❤️</sub>
+  <strong>RelayOS</strong> — Persistent AI Workers for Developers.<br>
+  <sub>Like htop for your AI team. No Docker, no server, no browser needed.</sub>
 </p>
