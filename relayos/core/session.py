@@ -268,8 +268,8 @@ class SessionStore:
             raise ValueError(f"Session '{parent_id}' not found")
         child = self.create_session(name or f"Fork of {parent.name}", parent.mode,
                                      parent.participants, parent.profile, parent.project_id)
-        # Copy messages from parent
-        msgs = self.get_messages(parent_id, limit=200)
+        # Copy messages from parent (full, no cap)
+        msgs = self.get_messages(parent_id, limit=10000)
         for m in msgs:
             with sqlite3.connect(self._db_path) as conn:
                 conn.execute(
@@ -287,6 +287,8 @@ class SessionStore:
 
         The new session combines messages from all parents.
         """
+        if not session_ids:
+            raise ValueError("Must provide at least one session to merge")
         child = self.create_session(name or f"Merge of {len(session_ids)} sessions",
                                      "integrated", profile=profile)
         # Record all parents

@@ -105,6 +105,7 @@ def run_tui():
     sess = None  # current Session
     view = "chat"  # chat | palette | sessions | graph
     pal_filter = ""; pal_sel = 0
+    mode_state = "auto"  # auto | edit
 
     layout = Layout()
     layout.split_column(Layout(name="header", size=1),
@@ -154,13 +155,14 @@ def run_tui():
                 if not sess:
                     add("sys", "", "No session to fork. Start a conversation first.")
                     return
-                child = ss.fork_session(sess.id)
+                pid = sess.id
+                child = ss.fork_session(pid)
                 sess = child; msgs.clear()
                 m = ss.get_messages(child.id, 30)
                 for x in m:
                     d = x.to_dict()
                     msgs.append({"role": d.get("role",""), "from": d.get("from",""), "content": d.get("content","")})
-                add("sys", "", f"Forked → {child.id[:10]} (from {sess.id[:10] if sess else '?'})")
+                add("sys", "", f"Forked -> {child.id[:10]} (from {pid[:10]})")
 
             elif cmd == "merge":
                 if len(parts) < 2:
@@ -182,12 +184,7 @@ def run_tui():
                     return
                 pid = parts[1]
                 mx = ss.get_messages(pid, 30)
-                count = 0
-                for x in mx:
-                    d = x.to_dict()
-                    msgs.append({"role": d.get("role",""), "from": d.get("from",""), "content": d.get("content","")})
-                    count += 1
-                add("sys", "", f"Attached {count} messages from {pid[:10]}")
+                add("sys", "", f"Attached {len(mx)} messages from {pid[:10]} (use /merge to combine)")
 
             elif cmd == "remember":
                 rest = " ".join(parts[1:])
@@ -265,7 +262,7 @@ def run_tui():
             add("sys", "", f"[ERR] {e}")
 
     def execute_action(action: str):
-        nonlocal sess, view
+        nonlocal sess, view, sl_sel, mode_state
         if action == "new_session":
             s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
             sess = s; msgs.clear()
@@ -275,17 +272,29 @@ def run_tui():
             sessions_list = ss.list_sessions(20); sl_sel = 0
             view = "sessions"
         elif action == "toggle_mode":
-            from relayos.providers.router import ProviderRouter
-            r = ProviderRouter()
-            r.mode = "edit" if r.mode == "auto" else "auto"
-            add("sys", "", f"Mode: {r.mode}")
+            mode_state = "edit" if mode_state == "auto" else "auto"
+            add("sys", "", f"Mode: {mode_state}")
+        elif action == "fork_session":
+            if sess:
+                pid = sess.id
+                child = ss.fork_session(pid)
+                sess = child; msgs.clear()
+                mx = ss.get_messages(child.id, 50)
+                for x in mx:
+                    msgs.append({"role": x.role, "from": x.from_worker, "content": x.content})
+                add("sys", "", f"Forked -> {child.id[:10]} (from {pid[:10]})")
+            else:
+                add("sys", "", "No session to fork. Start a conversation first.")
+        elif action == "merge_session":
+            add("sys", "", "Usage: /merge <session_id1> [session_id2 ...]")
+        elif action == "attach_session":
+            add("sys", "", "Usage: /attach <session_id>")
+        elif action == "remember_fact":
+            add("sys", "", "Usage: /remember key: value")
         elif action == "cost_report":
             s = bg.get_status()
             add("sys", "", f"Today: ${s['today']:.4f} / ${s['daily_limit']:.2f}")
         elif action == "show_help":
-            submit.__globals__["_exec_help"] = True
-            # Trigger help by simulating /help
-            nonlocal buf
             old = list(buf); buf.clear()
             for ch in "/help": buf.append(ch)
             submit()
@@ -359,46 +368,55 @@ def run_tui():
                             sl_sel = min(sl_sel, len(sessions_list)-1)
                     continue
 
-                # ── Chat ──
-                if key == CTRL_P: view = "palette"; pal_filter = ""; pal_sel = 0
-                elif key == ENTER: submit()
-                elif key == ESC:
-                    if buf: buf.clear()
-                elif key == BS:
-                    if buf: buf.pop()
-                elif key == CTRL_X:
-                    time.sleep(0.1); nk = _getch()
-                    if nk == "n":
-                        s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
-                        sess = s; msgs.clear()
-                        add("sys", "", f"New: {s.id}")
-                    elif nk == "s":
-                        sessions_list = ss.list_sessions(20); sl_sel = 0; view = "sessions"
-                    elif nk == "m":
-                        from relayos.providers.router import ProviderRouter
-                        r = ProviderRouter(); r.mode = "edit" if r.mode == "auto" else "auto"
-                        add("sys", "", f"Mode: {r.mode}")
-                    elif nk == "c":
-                        s = bg.get_status()
-                        add("sys", "", f"Today: ${s['today']:.4f} / ${s['daily_limit']:.2f}")
-                    elif nk == "k":
-                        execute_action("knowledge_view")
-                    elif nk == "g":
-                        view = "graph"
-                    elif nk == "?":
-                        submit.__globals__["_tmp"] = list(buf); buf.clear()
-                        for ch in "/help": buf.append(ch); submit()
-                elif key == CTRL_C: break
-                elif key == CTRL_U: buf.clear()
-                elif key == "^A":
-                    if history:
-                        hi = max(-1, hi-1)
-                        buf = list(history[min(hi,len(history)-1)]) if hi >= 0 else []
-                elif key == "^B":
-                    if history:
-                        hi = min(len(history), hi+1)
-                        buf = list(history[hi]) if 0 <= hi < len(history) else []
-                elif key and len(key)==1: buf.append(key)
+                # ── Chat mode key handlers ──
+                if view == "graph":
+                    if key == ESC: view = "chat"
+                    continue
+                if view == "chat":
+                    if key == CTRL_P: view = "palette"; pal_filter = ""; pal_sel = 0
+                    elif key == ENTER: submit()
+                    elif key == ESC:
+                        if buf: buf.clear()
+                    elif key == BS:
+                        if buf: buf.pop()
+                    elif key == CTRL_X:
+                        time.sleep(0.1); nk = _getch()
+                        if nk == "n":
+                            s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
+                            sess = s; msgs.clear()
+                            add("sys", "", f"New: {s.id}")
+                        elif nk == "s":
+                            sessions_list = ss.list_sessions(20); sl_sel = 0; view = "sessions"
+                        elif nk == "m":
+                            mode_state = "edit" if mode_state == "auto" else "auto"
+                            add("sys", "", f"Mode: {mode_state}")
+                        elif nk == "c":
+                            s = bg.get_status()
+                            add("sys", "", f"Today: ${s['today']:.4f} / ${s['daily_limit']:.2f}")
+                        elif nk == "k":
+                            execute_action("knowledge_view")
+                        elif nk == "g":
+                            view = "graph"
+                        elif nk == "?":
+                            old = list(buf); buf.clear()
+                            for ch in "/help": buf.append(ch)
+                            submit()
+                            buf = old
+                    elif key == CTRL_C: break
+                    elif key == CTRL_U: buf.clear()
+                    elif key == "^A":
+                        if history:
+                            hi = len(history) - 1 if hi <= -1 else max(0, hi - 1)
+                            buf = list(history[hi]) if 0 <= hi < len(history) else []
+                    elif key == "^B":
+                        if history and hi >= 0:
+                            hi += 1
+                            if hi < len(history):
+                                buf = list(history[hi])
+                            else:
+                                hi = -1
+                                buf = []
+                    elif key and len(key)==1: buf.append(key)
 
                 # ── Render ──
                 ph = parent_hint()
@@ -409,7 +427,7 @@ def run_tui():
                 h_parts = [(" RelayOS ", "bold blue"), (f" {sl} ", "cyan")]
                 if ph:
                     h_parts.append((f" {ph} ", "yellow"))
-                h_parts.append((" [AUTO]", "green"))
+                h_parts.append((f" [{mode_state.upper()}]", "green"))
                 h_parts.append((f" {bc}", "dim"))
                 layout["header"].update(Panel(Text.assemble(*h_parts), style="bold", height=1))
 
