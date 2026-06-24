@@ -381,6 +381,30 @@ RelayOS README is available in:
 
 ---
 
+## 📦 Publishing
+
+Releases are automated via GitHub Actions. To publish a new version:
+
+```bash
+# 1. Tag the release
+git tag v0.1.0
+git push origin v0.1.0
+
+# 2. Create a GitHub Release
+#    → Triggers .github/workflows/publish.yml
+#    → Auto-builds and publishes to PyPI
+
+# Or manually:
+pip install build twine
+python -m build
+python -m twine upload dist/*
+```
+
+**PyPI:** `pip install relayos`  
+**Source:** `github.com/jjjjjjjjnnjnn/relayos`
+
+---
+
 ## 📄 License
 
 [Apache 2.0](LICENSE) Copyright 2026 [jjjjjjjjnnjnn](https://github.com/jjjjjjjjnnjnn)

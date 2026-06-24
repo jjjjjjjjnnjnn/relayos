@@ -231,11 +231,26 @@ def _render_footer(wm: WorkerManager, profile: str) -> Panel:
 
 
 def main():
+    import sys as _sys
     import argparse
     p = argparse.ArgumentParser(description="RelayOS — AI Control Panel")
     p.add_argument("cmd", nargs="?", default="ui")
     p.add_argument("args", nargs="*")
     a = p.parse_args()
+
+    if not _sys.stdin.isatty() and a.cmd == "ui":
+        # Piped input: echo "msg" | relay
+        msg = _sys.stdin.read().strip()
+        if msg:
+            from relayos.core.conversation import ConversationEngine
+            eng = ConversationEngine()
+            try:
+                result = eng.chat(msg)
+                _sys.stdout.write(result["content"])
+            except Exception as e:
+                _sys.stderr.write(f"[ERR] {e}\n")
+                _sys.exit(1)
+        return
 
     if a.cmd in ("ui", "tui", ""):
         run_tui()
@@ -245,7 +260,6 @@ def main():
             print(f"{w['emoji']} {w['name']:<15} {w['role']:<14} {w['status']:<8} {w['provider']}")
     else:
         from relayos.cli.main import cli as cli_main
-        import sys as _sys
         _sys.argv = ["relay", a.cmd] + a.args
         cli_main()
 
