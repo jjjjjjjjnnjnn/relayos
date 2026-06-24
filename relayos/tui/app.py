@@ -24,7 +24,7 @@ from rich.text import Text
 
 logger = logging.getLogger(__name__)
 
-CTRL_P = "\x10"; CTRL_X = "\x18"; CTRL_C = "\x03"
+CTRL_P = "\x10"; CTRL_C = "\x03"
 CTRL_U = "\x15"; CTRL_A = "\x01"; CTRL_E = "\x05"
 TAB = "\x09"; ESC = "\x1b"; ENTER = "\r"
 BS = "\x7f"    # DEL (Unix raw mode)
@@ -38,14 +38,38 @@ def _getch() -> str:
             if not msvcrt.kbhit(): return ""
             cp = ctypes.windll.kernel32.GetConsoleCP()
             raw = msvcrt.getch()
+
+            # Extended keys: \xe0 (arrow/function) and \x00 (special)
             if raw in (b'\xe0', b'\x00'):
-                # Arrow keys: \xe0 H=Up P=Down K=Left M=Right
                 key = msvcrt.getch()
                 if key == b'H': return "^A"  # Up
                 if key == b'P': return "^B"  # Down
                 if key == b'K': return "^D"  # Left
                 if key == b'M': return "^C"  # Right
                 return ""
+
+            # ANSI escape sequences (\x1b[A etc.) — used by Windows Terminal
+            if raw == b'\x1b':
+                # First follower bytes should arrive within 5ms of the leader
+                nxt = b''
+                for _ in range(5):
+                    if msvcrt.kbhit():
+                        nxt = msvcrt.getch()
+                        break
+                    time.sleep(0.001)
+                if nxt == b'[':
+                    nxt2 = b''
+                    for _ in range(5):
+                        if msvcrt.kbhit():
+                            nxt2 = msvcrt.getch()
+                            break
+                        time.sleep(0.001)
+                    if nxt2 == b'A': return "^A"  # Up
+                    if nxt2 == b'B': return "^B"  # Down
+                    if nxt2 == b'D': return "^D"  # Left
+                    if nxt2 == b'C': return "^C"  # Right
+                return ""  # Discard partial sequences
+
             return raw.decode(f'cp{cp}')
         except Exception: return ""
     else:
@@ -71,23 +95,23 @@ def _getch() -> str:
 # ── Command Tree ───────────────────────────────────────────────
 COMMANDS = [
     {"cat": "Session", "items": [
-        {"name": "New Session", "key": "Ctrl+X N", "desc": "Start fresh conversation", "action": "new_session"},
-        {"name": "Fork Session", "key": "/fork", "desc": "Branch from current session", "action": "fork_session"},
-        {"name": "Merge Sessions", "key": "/merge", "desc": "Combine multiple sessions", "action": "merge_session"},
-        {"name": "Switch Session", "key": "Ctrl+X S", "desc": "Browse all sessions", "action": "switch_session"},
-        {"name": "Attach Session", "key": "/attach", "desc": "Import context from another session", "action": "attach_session"},
+        {"name": "New Session", "desc": "Start fresh conversation", "action": "new_session"},
+        {"name": "Fork Session", "desc": "Branch from current session", "action": "fork_session"},
+        {"name": "Merge Sessions", "desc": "Combine multiple sessions", "action": "merge_session"},
+        {"name": "Switch Session", "desc": "Browse all sessions", "action": "switch_session"},
+        {"name": "Attach Session", "desc": "Import context from another session", "action": "attach_session"},
     ]},
     {"cat": "Knowledge", "items": [
-        {"name": "Remember Fact", "key": "/remember", "desc": "Save knowledge: /remember key: value", "action": "remember_fact"},
-        {"name": "Browse Knowledge", "key": "Ctrl+X K", "desc": "Explore stored facts", "action": "knowledge_view"},
+        {"name": "Remember Fact", "desc": "Save knowledge: /remember key: value", "action": "remember_fact"},
+        {"name": "Browse Knowledge", "desc": "Explore stored facts", "action": "knowledge_view"},
     ]},
     {"cat": "Settings", "items": [
-        {"name": "Toggle Mode", "key": "Ctrl+X M", "desc": "Auto / Edit", "action": "toggle_mode"},
-        {"name": "Budget", "key": "Ctrl+X C", "desc": "Spending limits", "action": "cost_report"},
-        {"name": "Help", "key": "Ctrl+X ?", "desc": "Keyboard shortcuts", "action": "show_help"},
+        {"name": "Toggle Mode", "desc": "Auto / Edit", "action": "toggle_mode"},
+        {"name": "Budget", "desc": "Spending limits", "action": "cost_report"},
+        {"name": "Help", "desc": "Keyboard shortcuts", "action": "show_help"},
     ]},
     {"cat": "System", "items": [
-        {"name": "Quit", "key": "Ctrl+C", "desc": "Exit RelayOS", "action": "quit"},
+        {"name": "Quit", "desc": "Exit RelayOS", "action": "quit"},
     ]},
 ]
 
@@ -230,10 +254,8 @@ def run_tui():
                 add("sys", "", "  /mode         Toggle auto/edit")
                 add("sys", "", "")
                 add("sys", "", " Shortcuts:")
-                add("sys", "", "  Ctrl+P        Command palette")
-                add("sys", "", "  Ctrl+X N/S/M  New/Session/Mode")
-                add("sys", "", "  Ctrl+X C/?    Cost/Help")
-                add("sys", "", "  Tab           Switch provider")
+                add("sys", "", "  Ctrl+P        Command palette (all settings)")
+                add("sys", "", "  Esc           Cancel / clear input")
                 add("sys", "", "  Esc           Cancel")
                 add("sys", "", "  Up/Dn         History")
 
@@ -382,36 +404,6 @@ def run_tui():
                         if buf: buf.clear()
                     elif key in (BS, BS_WIN):
                         if buf: buf.pop()
-                    elif key == CTRL_X:
-                        # Wait up to 1.2s for chord key — 6 tries × 200ms
-                        nk = ""
-                        for _ in range(6):
-                            time.sleep(0.05)
-                            nk = _getch()
-                            if nk: break
-                            time.sleep(0.15)
-                        nk = nk.lower()
-                        if nk == "n":
-                            s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
-                            sess = s; msgs.clear()
-                            add("sys", "", f"New: {s.id}")
-                        elif nk == "s":
-                            sessions_list = ss.list_sessions(20); sl_sel = 0; view = "sessions"
-                        elif nk == "m":
-                            mode_state = "edit" if mode_state == "auto" else "auto"
-                            add("sys", "", f"Mode: {mode_state}")
-                        elif nk == "c":
-                            s = bg.get_status()
-                            add("sys", "", f"Today: ${s['today']:.4f} / ${s['daily_limit']:.2f}")
-                        elif nk == "k":
-                            execute_action("knowledge_view")
-                        elif nk == "g":
-                            view = "graph"
-                        elif nk in ("?", "/"):
-                            old = list(buf); buf.clear()
-                            for ch in "/help": buf.append(ch)
-                            submit()
-                            buf = old
                     elif key == CTRL_C: break
                     elif key == CTRL_U: buf.clear()
                     elif key == "^A":
@@ -452,9 +444,8 @@ def run_tui():
                         if it["cat"] not in shown:
                             shown.append(it["cat"]); lines.append(f"  {it['cat']}:")
                         sel = " >" if i == pal_sel else "  "
-                        k = f" ({it['key']})" if it.get("key") else ""
-                        lines.append(f"{sel} {it['name']:<25}{k:<15}{it.get('desc','')}")
-                    lines.append(f"  Filter: {pal_filter or '(type)'}")
+                        lines.append(f"{sel} {it['name']:<25} {it.get('desc','')}")
+                    lines.append(f"  Filter: {pal_filter or '(type to filter)'}")
                     lines.append("  Up/Down | Enter | Esc")
 
                 elif view == "graph":
@@ -467,7 +458,7 @@ def run_tui():
                         lines.append(f"  {line}")
                     lines.append("")
                     lines.append("  > current session")
-                    lines.append("  Ctrl+X G to refresh | Esc to close")
+                    lines.append("  Esc to close")
 
                 elif view == "sessions":
                     lines.append("  Sessions  (Esc back, d delete)")
