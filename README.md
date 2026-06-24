@@ -7,115 +7,147 @@
 <h1 align="center">RelayOS</h1>
 
 <p align="center">
-  <strong>Persistent AI Workers for Developers.</strong><br>
-  A terminal-native AI execution runtime — route tasks across Claude, GPT, Gemini, DeepSeek and local models<br>
-  with capability-aware scheduling, shared project memory, and multi-step execution graphs.
+  <strong>You use Claude, GPT, Gemini, DeepSeek, and local models.<br>
+  RelayOS makes them work together — automatically.</strong><br>
+  <br>
+  A terminal-native AI runtime that routes tasks to the right model,<br>
+  remembers project context across sessions, and saves you money.
 </p>
 
 <p align="center">
-  <a href="#-quick-start"><img src="https://img.shields.io/badge/-Quick_Start-10B981?style=flat-square" alt="Quick Start"></a>
-  <a href="#-features"><img src="https://img.shields.io/badge/-Features-3B82F6?style=flat-square" alt="Features"></a>
-  <a href="#-cli-reference"><img src="https://img.shields.io/badge/-CLI_Reference-8B5CF6?style=flat-square" alt="CLI Reference"></a>
-  <a href="#%EF%B8%8F-architecture"><img src="https://img.shields.io/badge/-Architecture-EC4899?style=flat-square" alt="Architecture"></a>
-  <a href="#%EF%B8%8F-credits"><img src="https://img.shields.io/badge/-Credits-6366F1?style=flat-square" alt="Credits"></a>
-  <a href="README.md"><img src="https://img.shields.io/badge/English-Doc-FFFFFF?style=flat-square" alt="English"></a>
-  <a href="README_ZH.md"><img src="https://img.shields.io/badge/中文-文档-EA4335?style=flat-square" alt="中文"></a>
-  <a href="README_DE.md"><img src="https://img.shields.io/badge/Deutsch-Dokument-FFD700?style=flat-square" alt="Deutsch"></a>
-  <a href="README_ES.md"><img src="https://img.shields.io/badge/Español-Doc-00C853?style=flat-square" alt="Español"></a>
-  <a href="README_FR.md"><img src="https://img.shields.io/badge/Français-Doc-1E90FF?style=flat-square" alt="Français"></a>
-  <a href="README_JP.md"><img src="https://img.shields.io/badge/日本語-ドキュメント-FF4081?style=flat-square" alt="日本語"></a>
-  <a href="README_KR.md"><img src="https://img.shields.io/badge/한국어-문서-03C75A?style=flat-square" alt="한국어"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Quick_Start-10B981?style=for-the-badge&logo=python" alt="Quick Start"></a>
+  <a href="#%EF%B8%8F-features"><img src="https://img.shields.io/badge/Features-3B82F6?style=for-the-badge" alt="Features"></a>
+  <a href="https://github.com/jjjjjjjjnnjnn/relayos"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github" alt="GitHub"></a>
+  <a href="#-installation"><img src="https://img.shields.io/badge/pip_install_relayos-FF6F00?style=for-the-badge&logo=pypi" alt="Install"></a>
+</p>
+
+<p align="center">
+  <a href="README_ZH.md"><img src="https://img.shields.io/badge/中文-EA4335?style=flat-square" alt="中文"></a>
+  <a href="README_DE.md"><img src="https://img.shields.io/badge/Deutsch-FFD700?style=flat-square" alt="Deutsch"></a>
+  <a href="README_ES.md"><img src="https://img.shields.io/badge/Español-00C853?style=flat-square" alt="Español"></a>
+  <a href="README_FR.md"><img src="https://img.shields.io/badge/Français-1E90FF?style=flat-square" alt="Français"></a>
+  <a href="README_JP.md"><img src="https://img.shields.io/badge/日本語-FF4081?style=flat-square" alt="日本語"></a>
+  <a href="README_KR.md"><img src="https://img.shields.io/badge/한국어-03C75A?style=flat-square" alt="한국어"></a>
 </p>
 
 ---
 
-## 📋 Index
+## 👋 The Problem
 
-| Section | Description |
-|---------|-------------|
-| [🎯 Overview](#-overview) | What RelayOS is and why it exists |
-| [✨ Features](#-features) | All capabilities (V0.1–V0.9) |
-| [⚡ Quick Start](#-quick-start) | Install and start |
-| [🔧 CLI Reference](#-cli-reference) | All 22 commands |
-| [🏗️ Architecture](#%EF%B8%8F-architecture) | System design |
-| [🛣️ Roadmap](#%EF%B8%8F-roadmap) | Version history & future |
-| [🙏 Credits](#%EF%B8%8F-credits) | Acknowledgements |
-| [📄 License](#-license) | Apache 2.0 |
+You open 5 browser tabs. ChatGPT for reasoning, Claude for architecture, Gemini for research, DeepSeek for coding. You copy output from one, paste it into the next. You burn premium tokens on tasks a free model could handle.
+
+**You waste 30% of your time managing tools instead of building.**
+
+## 🎯 The Solution
+
+RelayOS is the coordination layer that makes your AI tools work like a real team:
+
+```
+┌─ You ──────────────────────────────────────┐
+│                                             │
+│   relay session ask "Build a payment sys"   │
+│                                             │
+└─────────────────────┬───────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────┐
+│              RelayOS                         │
+│                                              │
+│  1. Research competitors   → Gemini (FREE)   │
+│  2. Design architecture   → Claude           │
+│  3. Implement the code    → GPT              │
+│  4. Security review       → DeepSeek (CHEAP) │
+│  5. Document the API      → Gemini (FREE)    │
+│                                              │
+│  Total cost: $0.01    Time: 45s              │
+└──────────────────────────────────────────────┘
+```
+
+**Zero infrastructure.** `pip install relayos && relay`. No Docker, no server, no browser.
 
 ---
 
-## 🎯 Overview
+## ✨ What Makes RelayOS Different
 
-**RelayOS** is a terminal-native AI execution runtime. Like htop for your AI team.
+| Feature | What It Does | Benefit |
+|---------|-------------|---------|
+| 🧠 **Smart Routing** | Auto-selects the best model for each task | Free models first, premium only when needed |
+| 🔄 **Multi-Step Plans** | Decomposes tasks into execution graphs | One command, many AI models working together |
+| 💾 **Project Memory** | Knowledge persists across sessions | Workers never forget what they learned |
+| 💰 **Cost Control** | Per-model tracking + budget limits | No surprise bills |
+| 🔌 **21 Terminal Types** | Claude, GPT, Gemini, DeepSeek, local, and 16+ more | Bring your own tools |
+| ⌨️ **Terminal Native** | htop-style TUI, no browser needed | Stays in your workflow |
 
-You have multiple AI tools (Claude Code, ChatGPT, Gemini, DeepSeek, local models). Each is excellent. They don't talk to each other. RelayOS is the coordination layer that routes tasks to the right model, remembers project context across sessions, and executes multi-step plans — all from your terminal, zero infrastructure.
+---
 
-### The Evolution
+## ⚡ Quick Start
 
+### Installation
+
+```bash
+pip install relayos
 ```
-V0.1  Model Routing       →  pick the right model
-V0.2  Terminal Pool       →  manage CLI workers
-V0.3  Worker System       →  persistent AI team members
-V0.4  State Compiler      →  structured state, not chat history
-V0.5  Model Scheduler     →  cost-aware (free first, escalate)
-V0.6  Session System      →  chat / ask / group modes
-V0.7  Capability Graph    →  multi-step task decomposition
-V0.8  Graph Execution     →  schema-aware artifact passing
-V0.9  Cross-Session Mem   →  project knowledge base
+
+Try it — literally one command:
+
+```bash
+relay
+```
+
+Opens the control panel. Like `htop`, but for your AI team.
+
+### Chat with any model
+
+```bash
+# Auto-routes to best model
+relay session chat "Explain Kubernetes architecture"
+
+# Or target a specific worker
+relay session chat "Design this API" -w architect
+```
+
+### Execute a multi-step task
+
+```bash
+relay session ask "Build a JWT auth system in FastAPI"
+```
+
+RelayOS will automatically decompose, route, and execute across the best models for each step.
+
+### Plan before you spend
+
+```bash
+relay session plan "Build a payment system"
+# Shows cost estimates before execution
+```
+
+### Group discussion (multiple AI workers)
+
+```bash
+relay session group "Review this architecture"
+# Each worker contributes: researcher → architect → reviewer
+```
+
+### Switch models instantly
+
+```bash
+relay use opencode     # All tasks → OpenCode (free)
+relay use mimo         # All tasks → Mimo (free)
+relay use claude       # All tasks → Claude (premium)
+relay use free         # Free-first routing
+```
+
+### Project knowledge
+
+```bash
+relay project create my-app
+relay session ask "Design the database" -p proj-id
+relay session ask "Add caching later"   -p proj-id  # Knows previous decisions!
+relay project knowledge proj-id                     # See accumulated knowledge
 ```
 
 ---
 
-## ✨ Features
-
-### 🤖 Model Scheduling (V0.1–V0.5)
-
-| Feature | Detail |
-|---------|--------|
-| **5 Provider Adapters** | OpenAI, Anthropic, Google, DeepSeek, Ollama |
-| **15 Models Scored** | 7 capabilities each (coding, architecture, review, research, reasoning, quick, writing) |
-| **3 Cost Profiles** | `free` (local first), `balanced` (cheap first), `quality` (best first) |
-| **Terminal Switching** | `relay use opencode` — instant switch between CLI terminals |
-| **Auto-Escalation** | Free → cheap → premium on low confidence |
-
-### 🧠 Worker System (V0.3)
-
-| Feature | Detail |
-|---------|--------|
-| **8 Default Workers** | architect, researcher, coder, reviewer, debugger, writer, assistant, data-engineer |
-| **Worker Persistence** | SQLite-backed, survive restarts |
-| **Worker Inbox** | Task-based inter-worker messaging |
-| **Focus View** | `relay focus <worker>` — SSH into a worker's mind |
-
-### 💬 Session System (V0.6–V0.7)
-
-| Feature | Detail |
-|---------|--------|
-| **3 Modes** | `chat` (single), `ask` (auto-execute), `group` (multi-worker) |
-| **Capability Routing** | Tracks what task type you're doing, not what model you used |
-| **Capability Graph** | Decomposes tasks into multi-step DAGs |
-| **Sticky Capability** | Session remembers coding/architecture, scheduler picks the model |
-
-### 🔄 Task Graph Execution (V0.8)
-
-| Feature | Detail |
-|---------|--------|
-| **Step Schemas** | 6 step types with input/output contracts |
-| **Artifact Passing** | Structured field references, not full text |
-| **Token Efficiency** | ~800 tokens/step vs ~3000 without schema |
-| **Resume** | Skip completed steps, continue from failure |
-| **Cost Estimation** | Per-step and total cost before execution |
-
-### 🗄️ Cross-Session Memory (V0.9)
-
-| Feature | Detail |
-|---------|--------|
-| **Project Knowledge** | Facts accumulate across sessions |
-| **KnowledgeCompiler** | Pure code extraction from artifacts |
-| **Skip Instructions** | Known info injected into prompts (no rediscovery) |
-| **~43% Savings** | On repeated sessions |
-
-### 🖥️ Terminal UI
+## 🖥️ The TUI
 
 ```
  Workers (1-9 select)         │ Status
@@ -126,201 +158,178 @@ V0.9  Cross-Session Mem   →  project knowledge base
  4 🎯 reviewer     ○ idle     │ Actions
  5 🐛 debugger     ○ idle     │  f=free  b=balanced
                                │  o=opencode  c=claude
-═══════════════════════════════╪═══════════════════════════
+═══════════════════════════════╪══════════════════════════════
  9w 9i 0b | inbox:0 | $0.00 | [balanced] | q=quit
 ```
 
+Keyboard-driven, no mouse needed. One key to switch profiles or workers.
+
 ---
 
-## ⚡ Quick Start
+## 🗺️ Capability Graph
 
-### Install
+When you type `relay session plan "Build a payment system"`, RelayOS generates:
 
-```bash
-pip install relayos
 ```
+Capability Graph: Build a payment system
+Profile: balanced  |  Estimated cost: $0.0084
+──────────────────────────────────────────────────────
+  [1] research     Research requirements
+       gemini-2.5-flash                FREE
 
-### Use
+  [2] architecture Design system architecture
+       claude-sonnet-4-20250514        $0.0083  → research
 
-```bash
-relay             # Open TUI (htop-style control panel)
-relay use free    # Switch to free models first
-```
+  [3] review       Review architecture decisions
+       deepseek-chat                   $0.0002  → architecture
 
-### Chat / Ask / Group
-
-```bash
-# Single AI conversation (auto-routed)
-relay session chat "Explain Kubernetes architecture"
-
-# Multi-step task execution
-relay session ask "Build a JWT auth system in FastAPI"
-
-# Multi-worker group discussion
-relay session group "Design a payment system"
-```
-
-### Switch Terminals Instantly
-
-```bash
-relay use opencode   # All tasks → OpenCode (free)
-relay use mimo       # All tasks → Mimo (free)
-relay use claude     # All tasks → Claude (premium)
-```
-
-### Project Knowledge
-
-```bash
-relay project create payment-system       # Create project
-relay project knowledge <project-id>      # Show accumulated knowledge
-relay session chat "Add refund" -p <pid>  # Session scoped to project
-```
-
-### Plan Before Executing
-
-```bash
-relay session plan "Build a payment system"
-# Shows: research(gemini free) → architecture(claude) → review(deepseek)
+──────────────────────────────────────────────────────
+Each step passes only relevant data (not full text).
+~800 tokens/step, ~7x less than naive approaches.
 ```
 
 ---
 
-## 🔧 CLI Reference
+## 🔧 Supported Terminals (21 types)
 
-| Command | Description |
+Automatically detects what you have installed:
+
+| Status | Terminal | Default Model |
+|--------|----------|---------------|
+| ✅ | **Claude Code** | claude-sonnet-4-20250514 |
+| ✅ | **Mimo Code** | gpt-4o |
+| ✅ | **OpenCode** | deepseek-chat |
+| ✅ | **Pi Coding Agent** | gpt-4o |
+| ✅ | **Cursor** | gpt-4o |
+| ✅ | **OpenClaw** | gpt-4o |
+| ✅ | **GitHub Copilot** | gpt-4o |
+| ✅ | **HuggingFace CLI** | gpt-4o |
+| ⬜ | OpenAI Codex | gpt-4o |
+| ⬜ | Gemini CLI | gemini-2.5-flash |
+| ⬜ | Aider | gpt-4o |
+| ⬜ | ShellGPT | gpt-4o |
+| ⬜ | Fabric | gpt-4o |
+| ⬜ | ChatGPT CLI | gpt-4o |
+| ⬜ | LLM CLI | gpt-4o |
+| ⬜ | Kimi (Moonshot) | moonshot-v1-8k |
+| ⬜ | Qwen CLI | qwen2.5:7b |
+| ⬜ | Open Interpreter | gpt-4o |
+| ⬜ | Continue | gpt-4o |
+| ⬜ | Copilot Extension | gpt-4o |
+| ⚡ | Custom | (configurable) |
+
+**Add any CLI as a terminal:**
+```bash
+relayos plugin add my-tool -m gpt-4o
+```
+
+---
+
+## 🔧 All Commands
+
+| Command | What it does |
 |---------|-------------|
-| `relay` | Open TUI control panel |
+| `relay` | Open control panel |
 | `relay session chat` | Single AI conversation |
-| `relay session ask` | Auto-decompose + execute task |
-| `relay session group` | Multi-worker group discussion |
-| `relay session plan` | Show capability graph without executing |
-| `relay session list` | List recent sessions |
-| `relay use` | Switch default terminal/profile |
-| `relay profile` | Set routing profile |
-| `relay focus` | Worker focus view |
+| `relay session ask` | Auto-decompose + execute |
+| `relay session group` | Multi-worker discussion |
+| `relay session plan` | Show capability graph |
+| `relay session list` | Recent sessions |
+| `relay use <terminal>` | Switch default terminal |
+| `relay use <profile>` | Switch cost profile |
+| `relay focus <worker>` | SSH into a worker |
 | `relay team create` | Create team from template |
-| `relay project create` | Create project for knowledge base |
-| `relay project knowledge` | Show project knowledge |
-| `relay plan` | Show execution plan for a task |
-| `relay estimate` | Show cost estimates |
-| `relay run` | Run YAML workflow |
-| `relay config` | Configuration wizard |
-| `relay plugin add` | Register custom CLI terminal |
-| `relayos serve` | Optional web dashboard |
-
-### Keyboard Shortcuts (in TUI)
-
-| Key | Action |
-|-----|--------|
-| `f` | Free profile |
-| `b` | Balanced profile |
-| `o` | OpenCode terminal |
-| `m` | Mimo terminal |
-| `c` | Claude terminal |
-| `1-9` | Select worker |
-| `q` | Quit |
-| `r` | Refresh |
+| `relay project create` | Create knowledge project |
+| `relay project knowledge` | Show project memory |
+| `relay plan "task"` | Show execution plan |
+| `relay estimate "task"` | Show cost estimates |
+| `relay run workflow.yaml` | Run YAML workflow |
+| `relay config detect` | Scan installed terminals |
+| `relayos plugin add` | Register a custom CLI |
+| `relayos serve` | Web dashboard (optional) |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Terminal / Pipe / TUI
+Terminal (relay / relayos)
          │
          ▼
-┌──────────────────────────────────────────────┐
-│         ConversationEngine                    │
-│  (session routing + capability detection)     │
-└──────────────────┬───────────────────────────┘
+┌────────────────────────────────────────────┐
+│      ConversationEngine                    │
+│  (session routing + capability detection)  │
+└──────────────────┬─────────────────────────┘
                    │
-┌──────────────────▼───────────────────────────┐
-│           TaskGraphExecutor                   │
-│  (schema-aware, artifact-passing, DAG exec)   │
-└──────────────────┬───────────────────────────┘
+┌──────────────────▼─────────────────────────┐
+│        TaskGraphExecutor                   │
+│  (schema-aware, artifact-passing, DAG exec) │
+└──────────────────┬─────────────────────────┘
                    │
-┌──────────────────▼───────────────────────────┐
-│         ModelScheduler                        │
-│  (15 models × 7 capabilities, cost-aware)     │
-└──────┬───────────────────────┬───────────────┘
-       │                       │
-┌──────▼──────┐       ┌───────▼──────────┐
-│  Adapters   │       │  Knowledge Base   │
-│  (5 prov.)  │       │  (SQLite, proj.)  │
-└─────────────┘       └──────────────────┘
+┌──────────────────▼─────────────────────────┐
+│        ModelScheduler                      │
+│  (15 models × 7 capabilities, cost-aware)   │
+└──────┬──────────────────────┬──────────────┘
+       │                      │
+┌──────▼──────┐     ┌─────────▼──────────┐
+│  Adapters   │     │  Knowledge Base     │
+│  (21 terms) │     │  (SQLite, project)   │
+└─────────────┘     └────────────────────┘
 ```
 
-### Core Modules
-
-| Module | Role |
-|--------|------|
-| `relayos/core/scheduler.py` | 15-model cost-aware scheduler |
-| `relayos/core/session.py` | Session lifecycle + messages |
-| `relayos/core/conversation.py` | Chat/ask/group engines |
-| `relayos/core/planner.py` | Capability graphs + execution |
-| `relayos/core/knowledge.py` | Cross-session project memory |
-| `relayos/core/state.py` | Structured state store |
-| `relayos/core/schemas.py` | Step input/output contracts |
-| `relayos/core/artifacts.py` | Structured artifact storage |
-| `relayos/tui/app.py` | Keyboard-driven TUI |
-
-### Storage (all local SQLite, zero infrastructure)
+### Storage (all local, zero infrastructure)
 
 ```
-~/.relayos/
-├── config.yaml        # User configuration
-├── state.db           # Project state + decisions + events
-├── sessions.db        # Session history + messages
-├── knowledge.db       # Cross-session project knowledge
-├── artifacts.db       # Structured step outputs
-└── workers.db         # Persistent worker definitions
+~/.relayos/           ← Single directory, portable
+├── config.yaml       ← Your model/profiles config
+├── state.db          ← Project state + decisions
+├── sessions.db       ← Session history + messages
+├── knowledge.db      ← Cross-session memory
+├── artifacts.db      ← Structured step outputs
+└── workers.db        ← Persistent workers
 ```
+
+### Design Philosophy
+
+| Principle | Why |
+|-----------|-----|
+| **Terminal-first** | Developers live in the terminal. No browser needed. |
+| **State, not chat** | Save decisions, not conversations. ~200x more compact. |
+| **Capability routing** | Bind to task type, not model. Models change; tasks don't. |
+| **Zero infrastructure** | Single process, local SQLite. No Docker, no Postgres, no Redis. |
+| **Cost-awareness** | Free tiers first. Save money without thinking about it. |
 
 ---
 
-## 🛣️ Roadmap
+## 📈 Version History
 
-### Completed (V0.1–V0.9)
-
-| Version | Core Feature | Status |
-|---------|-------------|--------|
-| V0.1 | Model Routing (5 adapters, YAML workflows) | ✅ |
-| V0.2 | Terminal Pool (multi-CLI, cost tracking) | ✅ |
-| V0.3 | Worker System (8 roles, persistence, TUI) | ✅ |
-| V0.4 | State Compiler (structured state, event sourcing) | ✅ |
-| V0.5 | Model Scheduler (15 models, 3 cost profiles) | ✅ |
-| V0.6 | Session System (chat/ask/group modes) | ✅ |
-| V0.7 | Capability Graph (multi-step task decomposition) | ✅ |
-| V0.8 | Task Graph Execution (schema-aware artifact passing) | ✅ |
-| V0.9 | Cross-Session Memory (project knowledge base) | ✅ |
-
-### Planned
-
-- **V1.0** — Plugin ecosystem, MCP router, distributed workers
-- **V1.1** — Workflow replay (LangSmith-style timeline)
-- **V1.2** — Multi-machine worker pool
+| Version | What |
+|---------|------|
+| **V0.1** | Model routing — 5 provider adapters, YAML workflows |
+| **V0.2** | Terminal pool — multi-CLI, cost tracking |
+| **V0.3** | Worker system — 8 roles, persistence, TUI |
+| **V0.4** | State compiler — structured state, event sourcing |
+| **V0.5** | Model scheduler — 15 models, 3 cost profiles |
+| **V0.6** | Session system — chat/ask/group modes |
+| **V0.7** | Capability graph — multi-step task decomposition |
+| **V0.8** | Task graph execution — schema-aware artifact passing |
+| **V0.9** | Cross-session memory — project knowledge base |
 
 ---
 
-## 🙏 Credits
+## 💪 Built With
 
-### 🖥️ Terminal Platforms
+| Component | Tech |
+|-----------|------|
+| **Language** | Python 3.10+ |
+| **CLI Framework** | Click 8.0+ |
+| **HTTP Client** | HTTPX 0.27+ |
+| **Terminal UI** | Rich |
+| **Storage** | SQLite (no external DB) |
+| **Models** | 15 scored models, 21 terminal types |
+| **License** | Apache 2.0 |
 
-| Platform | Credit |
-|----------|--------|
-| **[Claude Code](https://claude.ai)** — Powered by Anthropic | Primary development platform. [Terms](https://www.anthropic.com/legal) |
-| **[OpenCode](https://opencode.ai)** | Terminal adapter target and testing partner |
-| **[MimoCode](https://mimo.ai)** | Terminal adapter for multi-model frontend workflows |
-| **OpenAI Codex** | Terminal adapter for coding tasks |
-
-### 🤖 Models Used
-
-- **Claude Opus 4.8 / Sonnet 4.6** (Anthropic) — Primary development models
-- **Gemini 2.5 Flash** (Google) — Research tasks, competitive analysis
-- **GPT-4o** (OpenAI) — Architecture evaluation and review
-- **DeepSeek V3** (DeepSeek) — Code review and testing
-
-### 📦 Dependencies
+### Dependencies
 
 | Library | License | Purpose |
 |---------|---------|---------|
@@ -329,8 +338,52 @@ Terminal / Pipe / TUI
 | [HTTPX](https://www.python-httpx.org/) | BSD-3-Clause | HTTP client for model APIs |
 | [Rich](https://rich.readthedocs.io/) | MIT | Terminal UI rendering |
 
-### 🌍 Translations
+### Credits
 
+- **Claude Code** (Anthropic) — Primary development platform
+- **OpenCode** — Terminal adapter & testing partner
+- **MimoCode** — Terminal adapter for frontend workflows
+- **OpenAI Codex** — Terminal adapter for coding tasks
+- **ECC plugin system** — Agent orchestration patterns
+- **MCP (Model Context Protocol)** — Tool integration protocol
+
+---
+
+## 📦 Installation
+
+### pip
+
+```bash
+pip install relayos
+```
+
+### Optional: web dashboard
+
+```bash
+pip install relayos[server]
+relayos serve --open
+```
+
+### From source
+
+```bash
+git clone https://github.com/jjjjjjjjnnjnn/relayos.git
+cd relayos
+pip install -e .
+```
+
+### Docker (web dashboard only)
+
+```bash
+docker build -t relayos .
+docker run -p 8080:8080 -v $(pwd)/config:/root/.relayos relayos
+```
+
+---
+
+## 🌐 Languages
+
+- [English](README.md)
 - [中文 (Chinese)](README_ZH.md)
 - [Deutsch (German)](README_DE.md)
 - [Français (French)](README_FR.md)
@@ -340,22 +393,18 @@ Terminal / Pipe / TUI
 
 ---
 
-## 📦 Publishing
+## 📄 License
 
-Releases are automated via GitHub Actions. To publish a new version:
-
-```bash
-git tag v0.1.0 && git push origin v0.1.0
-# Triggers .github/workflows/publish.yml → auto-builds → PyPI
-```
-
-**Install:** `pip install relayos`
-**Source:** [github.com/jjjjjjjjnnjnn/relayos](https://github.com/jjjjjjjjnnjnn/relayos)
-**License:** [Apache 2.0](LICENSE)
+[Apache 2.0](LICENSE) Copyright 2026 [jjjjjjjjnnjnn](https://github.com/jjjjjjjjnnjnn)
 
 ---
 
 <p align="center">
-  <strong>RelayOS</strong> — Persistent AI Workers for Developers.<br>
-  <sub>Like htop for your AI team. No Docker, no server, no browser needed.</sub>
+  <strong>Stop copy-pasting between AI tools.<br>
+  Let them work together.</strong><br>
+  <br>
+  <a href="https://github.com/jjjjjjjjnnjnn/relayos"><img src="https://img.shields.io/badge/GitHub-★-181717?style=for-the-badge&logo=github" alt="GitHub"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Get_Started-10B981?style=for-the-badge" alt="Get Started"></a>
+  <br>
+  <sub><code>pip install relayos && relay</code></sub>
 </p>
