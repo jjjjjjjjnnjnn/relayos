@@ -4,7 +4,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" alt="RelayOS Demo" width="800">
+  <video src="docs/demo.mp4" controls width="800" autoplay loop muted>
+    Your browser does not support the video tag. <a href="docs/demo.mp4">Download video</a>
+  </video>
 </p>
 
 <p align="center">
