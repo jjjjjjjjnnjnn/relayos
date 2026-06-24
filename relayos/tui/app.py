@@ -24,6 +24,7 @@ from rich.text import Text
 logger = logging.getLogger(__name__)
 
 CTRL_P = "\x10"; CTRL_X = "\x18"; CTRL_C = "\x03"
+CTRL_U = "\x15"; CTRL_A = "\x01"; CTRL_E = "\x05"
 TAB = "\x09"; ESC = "\x1b"; ENTER = "\r"; BS = "\x7f"
 
 
