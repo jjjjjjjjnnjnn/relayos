@@ -287,7 +287,7 @@ def run_tui():
             add("sys", "", f"[ERR] {e}")
 
     def execute_action(action: str):
-        nonlocal sess, view, sl_sel, mode_state
+        nonlocal sess, view, sl_sel, mode_state, buf
         if action == "new_session":
             s = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
             sess = s; msgs.clear()
@@ -368,10 +368,9 @@ def run_tui():
                     elif key == "^A": pal_sel = max(0, pal_sel - 1)
                     elif key == "^B": pal_sel = min(len(pal_items(pal_filter))-1, pal_sel + 1)
                     elif key and len(key)==1 and key.isprintable(): pal_filter += key; pal_sel = 0
-                    continue
 
                 # ── Sessions ──
-                if view == "sessions":
+                elif view == "sessions":
                     if key == ESC: view = "chat"
                     elif key == ENTER and sessions_list:
                         idx = sl_sel
@@ -391,12 +390,12 @@ def run_tui():
                             ss.delete_session(sessions_list[idx]["id"])
                             sessions_list = ss.list_sessions(20)
                             sl_sel = min(sl_sel, len(sessions_list)-1)
-                    continue
 
-                # ── Chat mode key handlers ──
-                if view == "graph":
+                # ── Graph ──
+                elif view == "graph":
                     if key == ESC: view = "chat"
-                    continue
+
+                # ── Chat ──
                 if view == "chat":
                     if key == CTRL_P: view = "palette"; pal_filter = ""; pal_sel = 0
                     elif key == ENTER: submit()
