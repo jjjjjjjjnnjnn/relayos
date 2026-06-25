@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 CTRL_P = "\x10"; CTRL_C = "\x03"
 CTRL_U = "\x15"; CTRL_A = "\x01"; CTRL_E = "\x05"
-TAB = "\x09"; ESC = "\x1b"; ENTER = "\r"
+TAB = "\x09"; TAB_BACK = "^Z"; ESC = "\x1b"; ENTER = "\r"
 BS = "\x7f"    # DEL (Unix raw mode)
 BS_WIN = "\x08"  # Backspace (Windows)
 
@@ -68,6 +68,7 @@ def _getch() -> str:
                     if nxt2 == b'B': return "^B"  # Down
                     if nxt2 == b'D': return "^D"  # Left
                     if nxt2 == b'C': return "^C"  # Right
+                    if nxt2 == b'Z': return "^Z"  # Shift+Tab
                 return ""  # Discard partial sequences
 
             return raw.decode(f'cp{cp}')
@@ -133,7 +134,16 @@ def run_tui():
     view = "chat"  # chat | palette | sessions | graph
     pal_filter = ""; pal_sel = 0
     session_search = ""; session_focus = "search"; session_items = []
-    mode_state = "auto"  # auto | edit
+    mode_state = "auto"  # auto | edit | group
+    tab_provider_idx = 0
+    tab_providers = []
+    # Load CLI providers
+    try:
+        from relayos.providers import detect_providers
+        _all = detect_providers()
+        tab_providers = [p for p in _all if p.type == "cli" and p.enabled]
+    except Exception:
+        tab_providers = []
 
     layout = Layout()
     layout.split_column(Layout(name="header", size=1),
@@ -265,25 +275,37 @@ def run_tui():
                 add("sys", "", f"Today: ${s['today']:.4f} / ${s['daily_limit']:.2f}")
 
             elif cmd == "mode":
-                from relayos.providers.router import ProviderRouter
-                r = ProviderRouter()
-                r.mode = "edit" if r.mode == "auto" else "auto"
-                add("sys", "", f"Mode: {r.mode}")
+                modes = ["auto", "edit", "group"]
+                mode_state = modes[(modes.index(mode_state) + 1) % len(modes)]
+                add("sys", "", f"Mode: {mode_state}")
             else:
                 add("sys", "", f"Unknown: /{cmd}. Try /help")
             return
 
         # ── Regular chat ──
         add("user", "you", text)
+        from relayos.providers import create_provider
         try:
-            from relayos.core.conversation import ConversationEngine
-            eng = ConversationEngine()
-            r = eng.chat(text)
-            add("assistant", r.get("worker","ai"), r.get("content","")[:500])
-            # Auto-save to session
-            sid = r.get("session_id","")
-            if sid and not sess:
-                sess = ss.get_session(sid)
+            # Use selected CLI provider, or first enabled, or fallback to API engine
+            provider = None
+            if tab_providers and 0 <= tab_provider_idx < len(tab_providers):
+                provider = create_provider(tab_providers[tab_provider_idx])
+            if not provider:
+                _avail = [create_provider(p) for p in detect_providers() if p.enabled]
+                if _avail:
+                    provider = _avail[0]
+            if provider:
+                result = provider.complete(text)
+                content = result.content[:500] if result.content else ""
+                model_name = result.model or provider.config.display_name
+                add("assistant", model_name, content)
+                # Auto-create session
+                if not sess:
+                    sess = ss.create_session(f"Conv-{uuid.uuid4().hex[:6]}")
+                ss.add_message(sess.id, "user", "user", text)
+                ss.add_message(sess.id, "assistant", model_name, content)
+            else:
+                add("sys", "", f"[ERR] No CLI provider available. Install mimo, claude, or opencode.")
         except Exception as e:
             add("sys", "", f"[ERR] {e}")
 
@@ -299,7 +321,8 @@ def run_tui():
             sessions_list = ss.search_sessions(); session_items = list(sessions_list)
             view = "sessions"
         elif action == "toggle_mode":
-            mode_state = "edit" if mode_state == "auto" else "auto"
+            modes = ["auto", "edit", "group"]
+            mode_state = modes[(modes.index(mode_state) + 1) % len(modes)]
             add("sys", "", f"Mode: {mode_state}")
         elif action == "fork_session":
             if sess:
@@ -426,6 +449,14 @@ def run_tui():
                 if view == "chat":
                     if key == CTRL_P: view = "palette"; pal_filter = ""; pal_sel = 0
                     elif key == ENTER: submit()
+                    elif key == TAB:
+                        if tab_providers:
+                            tab_provider_idx = (tab_provider_idx + 1) % len(tab_providers)
+                            add("sys", "", f"Provider: {tab_providers[tab_provider_idx].display_name}")
+                    elif key == TAB_BACK:
+                        modes = ["auto", "edit", "group"]
+                        mode_state = modes[(modes.index(mode_state) + 1) % len(modes)]
+                        add("sys", "", f"Mode: {mode_state}")
                     elif key == ESC:
                         if buf: buf.clear()
                     elif key in (BS, BS_WIN):
@@ -549,7 +580,7 @@ def run_tui():
                 inp = "".join(buf)
                 foot = [f"> {inp}" + ("█" if view == "chat" else "")]
                 if view == "chat":
-                    foot.append("  Ctrl+P=palette  /fork  /merge  /remember  /help")
+                    foot.append("  Ctrl+P=palette  /fork  /merge  /remember  /help  Tab=provider")
                 layout["footer"].update(Panel("\n".join(foot), style="green", height=3))
 
                 live.refresh()
