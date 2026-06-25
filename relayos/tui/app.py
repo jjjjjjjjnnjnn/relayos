@@ -590,7 +590,7 @@ def run_tui():
                 layout["footer"].update(Panel("\n".join(foot), style="green", height=3))
 
                 live.refresh()
-                time.sleep(0.03)
+                time.sleep(0.1)
 
         except KeyboardInterrupt: pass
 

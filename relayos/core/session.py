@@ -310,12 +310,11 @@ class SessionStore:
         # Copy messages from parent (full, no cap)
         msgs = self.get_messages(parent_id, limit=10000)
         for m in msgs:
-            with sqlite3.connect(self._db_path) as conn:
-                conn.execute(
-                    "INSERT INTO messages (id, session_id, role, from_worker, content, event_type, model, tokens, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (f"msg-{uuid.uuid4().hex[:8]}", child.id, m.role, m.from_worker, m.content, m.event_type, m.model, m.tokens, m.created_at),
-                )
-                conn.commit()
+            self._conn.execute(
+                "INSERT INTO messages (id, session_id, role, from_worker, content, event_type, model, tokens, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"msg-{uuid.uuid4().hex[:8]}", child.id, m.role, m.from_worker, m.content, m.event_type, m.model, m.tokens, m.created_at),
+            )
+        self._conn.commit()
         # Record graph edge: child was forked FROM parent
         self.add_integrated_conversation(child.id, [parent_id])
         return child
@@ -336,12 +335,11 @@ class SessionStore:
         for pid in session_ids:
             msgs = self.get_messages(pid, limit=100)
             for m in msgs:
-                with sqlite3.connect(self._db_path) as conn:
-                    conn.execute(
-                        "INSERT INTO messages (id, session_id, role, from_worker, content, event_type, model, tokens, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (f"msg-{uuid.uuid4().hex[:8]}", child.id, m.role, m.from_worker, m.content, m.event_type, m.model, m.tokens, m.created_at),
-                    )
-                    conn.commit()
+                self._conn.execute(
+                    "INSERT INTO messages (id, session_id, role, from_worker, content, event_type, model, tokens, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (f"msg-{uuid.uuid4().hex[:8]}", child.id, m.role, m.from_worker, m.content, m.event_type, m.model, m.tokens, m.created_at),
+                )
+        self._conn.commit()
         return child
 
     def get_parent_summary(self, sid: str) -> str:

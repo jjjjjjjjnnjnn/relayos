@@ -16,7 +16,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -123,26 +123,17 @@ class CLIProvider(BaseProvider):
 
         # Build command args — support providers that take prompt via stdin
         cmd = [binary]
-        typed_cmds = {
-            "claude": ["-p", prompt],
-            "opencode": ["-p", prompt],
-            "mimo": ["-p", prompt],
-            "codex": ["-p", prompt],
-            "qcode": ["--prompt", prompt],
-        }
-        args = typed_cmds.get(cfg.provider)
-        if args is not None:
-            cmd.extend(args)
-            pipe_stdin = False
-        else:
-            # Default: pipe prompt via stdin, no CLI args
-            pipe_stdin = True
+        # Windows: .CMD files need shell=True
+        use_shell = sys.platform == "win32"
+        # Pipe prompt via stdin (no -p arg) — works for all CLI tools
+        pipe_stdin = True
 
         start = time.time()
         try:
             result = subprocess.run(
                 cmd, input=prompt if pipe_stdin else None,
                 capture_output=True, text=True, timeout=300,
+                shell=use_shell,
             )
             dur = int((time.time() - start) * 1000)
             if result.returncode != 0:
